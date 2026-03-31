@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keen — Sharper Product Intelligence for Amazon Sellers</title>
+<meta name="description" content="The modern product tracker that tells you what your data means. Track products, get AI-powered insights, and make smarter FBA decisions. Free Chrome extension.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-deep: #0a0e1a;
+  --bg-card: #111827;
+  --bg-card-hover: #1a2235;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-accent: rgba(56,189,248,0.2);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #38bdf8;
+  --accent-glow: rgba(56,189,248,0.15);
+  --accent-bright: #7dd3fc;
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #fb923c;
+  --serif: 'Instrument Serif', Georgia, serif;
+  --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== GRAIN OVERLAY ===== */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ===== UTILITY ===== */
+.container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* ===== NAV ===== */
+nav {
+  position: fixed;
+  top: 0; left: 0; width: 100%;
+  z-index: 100;
+  padding: 20px 0;
+  transition: all 0.4s ease;
+  background: transparent;
+}
+nav.scrolled {
+  background: rgba(10,14,26,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 14px 0;
+}
+nav .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-logo {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--text-primary);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.nav-logo span { color: var(--accent); }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-cta {
+  background: var(--accent) !important;
+  color: var(--bg-deep) !important;
+  padding: 10px 24px !important;
+  border-radius: 8px;
+  font-weight: 600 !important;
+  transition: all 0.3s !important;
+}
+.nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* ===== HERO ===== */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 120px 0 80px;
+}
+
+/* Gradient orbs */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -15%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(74,222,128,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border-accent);
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 28px;
+  letter-spacing: 0.3px;
+}
+.hero-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 2s ease infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(42px, 5vw, 64px);
+  line-height: 1.1;
+  font-weight: 400;
+  margin-bottom: 24px;
+  letter-spacing: -0.5px;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 40px;
+  max-width: 500px;
+}
+
+.hero-cta-group {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: var(--accent);
+  color: var(--bg-deep);
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.3s;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(56,189,248,0.25); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 28px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 15px;
+  border-radius: 10px;
+  text-decoration: none;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.3s;
+}
+.btn-secondary:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+/* Hero mock product card */
+.hero-visual {
+  position: relative;
+}
+.product-card-mock {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.product-card-mock::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+}
+.mock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.mock-product-name {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.mock-asin {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+.mock-badge-live {
+  padding: 4px 12px;
+  background: rgba(74,222,128,0.1);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: 0.5px;
+}
+.mock-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.mock-metric {
+  padding: 14px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+}
+.mock-metric-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.mock-metric-value {
+  font-size: 22px;
+  font-weight: 700;
+}
+.mock-metric-change {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.up { color: var(--green); }
+.down { color: var(--red); }
+
+.mock-insight {
+  padding: 16px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border-accent);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+.mock-insight-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mock-insight-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.mock-chart {
+  height: 60px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding-top: 8px;
+}
+.mock-chart-bar {
+  flex: 1;
+  background: var(--accent);
+  border-radius: 3px 3px 0 0;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.mock-chart-bar:nth-last-child(-n+5) { opacity: 0.6; }
+.mock-chart-bar:nth-last-child(-n+2) { opacity: 1; }
+
+/* Float animation */
+.product-card-mock {
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ===== SOCIAL PROOF BAR ===== */
+.social-proof {
+  padding: 40px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.proof-items {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+}
+.proof-item {
+  text-align: center;
+}
+.proof-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--sans);
+}
+.proof-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ===== PROBLEM SECTION ===== */
+.problem {
+  padding: 120px 0;
+}
+.section-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: var(--serif);
+  font-size: clamp(32px, 3.5vw, 48px);
+  line-height: 1.15;
+  margin-bottom: 24px;
+  max-width: 700px;
+}
+.section-desc {
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 600px;
+  margin-bottom: 60px;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.problem-card {
+  padding: 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  transition: all 0.3s;
+}
+.problem-card:hover {
+  border-color: rgba(248,113,113,0.3);
+  transform: translateY(-4px);
+}
+.problem-icon {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+.problem-card h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.problem-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== FEATURES ===== */
+.features {
+  padding: 120px 0;
+  position: relative;
+}
+.features::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 60px;
+}
+.feature-card {
+  padding: 36px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--accent-glow), transparent);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.feature-card:hover::after { opacity: 1; }
+.feature-card:hover { border-color: var(--border-accent); transform: translateY(-4px); }
+.feature-card > * { position: relative; z-index: 2; }
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-glow);
+  border: 1px solid var(--border-accent);
+  border-radius: 12px;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+.feature-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.feature-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ===== COMPARISON ===== */
+.comparison {
+  padding: 120px 0;
+}
+.comparison-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 60px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+.comparison-table th, .comparison-table td {
+  padding: 18px 24px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.comparison-table thead th {
+  background: var(--bg-card);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+.comparison-table thead th:last-child {
+  color: var(--accent);
+}
+.comparison-table tbody td {
+  color: var(--text-secondary);
+}
+.comparison-table tbody td:first-child {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.comparison-table tbody td:last-child {
+  color: var(--accent-bright);
+  font-weight: 500;
+}
+.comparison-table tbody tr:last-child td { border-bottom: none; }
+.comparison-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+.comparison-table .check { color: var(--green); }
+.comparison-table .cross { color: var(--text-muted); opacity: 0.4; }
+.keen-col { background: rgba(56,189,248,0.03); }
+
+/* ===== PRICING PREVIEW ===== */
+.pricing {
+  padding: 120px 0;
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 60px;
+}
+.pricing-card {
+  padding: 36px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  transition: all 0.3s;
+  position: relative;
+}
+.pricing-card.featured {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(56,189,248,0.05), var(--bg-card));
+}
+.pricing-card.featured::before {
+  content: 'MOST POPULAR';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 16px;
+  background: var(--accent);
+  color: var(--bg-deep);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 100px;
+}
+.pricing-tier {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.pricing-price {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.pricing-price span { font-size: 16px; font-weight: 400; color: var(--text-muted); }
+.pricing-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+.pricing-features {
+  list-style: none;
+  margin-bottom: 32px;
+}
+.pricing-features li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pricing-features li::before {
+  content: '✓';
+  color: var(--accent);
+  font-weight: 600;
+}
+.pricing-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.3s;
+  font-family: var(--sans);
+  cursor: pointer;
+  border: none;
+}
+.pricing-btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+.pricing-btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.pricing-btn-filled {
+  background: var(--accent);
+  color: var(--bg-deep);
+}
+.pricing-btn-filled:hover { opacity: 0.9; }
+
+/* ===== CTA / EMAIL CAPTURE ===== */
+.cta-section {
+  padding: 120px 0;
+  text-align: center;
+  position: relative;
+}
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-content {
+  position: relative;
+  z-index: 2;
+}
+.cta-section .section-title {
+  margin: 0 auto 16px;
+  text-align: center;
+}
+.cta-section .section-desc {
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.email-form {
+  display: flex;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+  justify-content: center;
+}
+.email-form input {
+  flex: 1;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: var(--sans);
+  outline: none;
+  transition: border-color 0.3s;
+}
+.email-form input::placeholder { color: var(--text-muted); }
+.email-form input:focus { border-color: var(--accent); }
+.email-form button {
+  padding: 16px 28px;
+  background: var(--accent);
+  color: var(--bg-deep);
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+.email-form button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.cta-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 16px;
+}
+
+/* ===== FOOTER ===== */
+footer {
+  padding: 48px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-logo {
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.3s;
+}
+.footer-links a:hover { color: var(--text-primary); }
+
+/* ===== ANIMATIONS ===== */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .hero-content { grid-template-columns: 1fr; gap: 48px; }
+  .hero-visual { order: -1; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .nav-links { display: none; }
+  .proof-items { gap: 32px; }
+  .comparison-table { font-size: 13px; }
+  .comparison-table th, .comparison-table td { padding: 12px 14px; }
+  .email-form { flex-direction: column; }
+  .footer-content { flex-direction: column; gap: 24px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="container">
+    <a href="#" class="nav-logo">Keen<span>.</span></a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#comparison">vs Keepa</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#early-access" class="nav-cta">Get Early Access</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div>
+        <div class="hero-badge">
+          <span class="dot"></span>
+          Coming Soon — Chrome Extension
+        </div>
+        <h1>Stop reading charts.<br>Start making <em>decisions.</em></h1>
+        <p class="hero-sub">Keen is the modern product tracker for Amazon sellers. AI-powered insights tell you what your data means, so you can move faster and smarter than the competition.</p>
+        <div class="hero-cta-group">
+          <a href="#early-access" class="btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Join the Waitlist
+          </a>
+          <a href="#features" class="btn-secondary">See How It Works →</a>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="product-card-mock">
+          <div class="mock-header">
+            <div>
+              <div class="mock-product-name">Silicone Kitchen Utensil Set (14pc)</div>
+              <div class="mock-asin">ASIN: B0C7K3M2X9 · Home & Kitchen</div>
+            </div>
+            <div class="mock-badge-live">TRACKING</div>
+          </div>
+          <div class="mock-metrics">
+            <div class="mock-metric">
+              <div class="mock-metric-label">Price</div>
+              <div class="mock-metric-value">$24.99</div>
+              <div class="mock-metric-change down">▼ $2.00</div>
+            </div>
+            <div class="mock-metric">
+              <div class="mock-metric-label">BSR</div>
+              <div class="mock-metric-value">#847</div>
+              <div class="mock-metric-change up">▲ 35%</div>
+            </div>
+            <div class="mock-metric">
+              <div class="mock-metric-label">Reviews</div>
+              <div class="mock-metric-value">1,204</div>
+              <div class="mock-metric-change up">+23/wk</div>
+            </div>
+          </div>
+          <div class="mock-insight">
+            <div class="mock-insight-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              KEEN INSIGHT
+            </div>
+            <div class="mock-insight-text">BSR dropped 35% in 14 days while review velocity is flat. Demand is rising and competition hasn't noticed yet. Consider sourcing at current price point.</div>
+          </div>
+          <div class="mock-chart">
+            <div class="mock-chart-bar" style="height:30%"></div>
+            <div class="mock-chart-bar" style="height:35%"></div>
+            <div class="mock-chart-bar" style="height:25%"></div>
+            <div class="mock-chart-bar" style="height:40%"></div>
+            <div class="mock-chart-bar" style="height:38%"></div>
+            <div class="mock-chart-bar" style="height:45%"></div>
+            <div class="mock-chart-bar" style="height:42%"></div>
+            <div class="mock-chart-bar" style="height:55%"></div>
+            <div class="mock-chart-bar" style="height:50%"></div>
+            <div class="mock-chart-bar" style="height:60%"></div>
+            <div class="mock-chart-bar" style="height:58%"></div>
+            <div class="mock-chart-bar" style="height:70%"></div>
+            <div class="mock-chart-bar" style="height:65%"></div>
+            <div class="mock-chart-bar" style="height:75%"></div>
+            <div class="mock-chart-bar" style="height:80%"></div>
+            <div class="mock-chart-bar" style="height:85%"></div>
+            <div class="mock-chart-bar" style="height:78%"></div>
+            <div class="mock-chart-bar" style="height:90%"></div>
+            <div class="mock-chart-bar" style="height:95%"></div>
+            <div class="mock-chart-bar" style="height:100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="social-proof">
+  <div class="container">
+    <div class="proof-items">
+      <div class="proof-item">
+        <div class="proof-number">2.5M+</div>
+        <div class="proof-label">Active Amazon Sellers</div>
+      </div>
+      <div class="proof-item">
+        <div class="proof-number">$575B</div>
+        <div class="proof-label">3P Marketplace GMV (2025)</div>
+      </div>
+      <div class="proof-item">
+        <div class="proof-number">82%</div>
+        <div class="proof-label">Use FBA Fulfillment</div>
+      </div>
+      <div class="proof-item">
+        <div class="proof-number">$0</div>
+        <div class="proof-label">To Start with Keen</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="section-label fade-in">The Problem</div>
+    <h2 class="section-title fade-in delay-1">Your current tools show you data.<br>They never tell you what it <em style="font-family:var(--serif);color:var(--accent)">means.</em></h2>
+    <p class="section-desc fade-in delay-2">FBA sellers waste hours interpreting confusing charts, switching between tabs, and second-guessing product decisions. Legacy tools were built for data nerds. You need a co-pilot.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card fade-in delay-1">
+        <div class="problem-icon">📊</div>
+        <h3>Overwhelming Interfaces</h3>
+        <p>Keepa charts look like stock trading terminals. 15 overlapping lines, no context, no recommendations. You need a PhD to read them.</p>
+      </div>
+      <div class="problem-card fade-in delay-2">
+        <div class="problem-icon">💸</div>
+        <h3>Shrinking Free Tiers</h3>
+        <p>Keepa just slashed free tracking from 5,000 products to 200 overnight. Helium 10 killed their Starter plan. Prices go up, value goes down.</p>
+      </div>
+      <div class="problem-card fade-in delay-3">
+        <div class="problem-icon">🧭</div>
+        <h3>Data Without Direction</h3>
+        <p>You know the BSR dropped. You know the price changed. But should you source this product? Should you wait? Nobody tells you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-label fade-in">The Solution</div>
+    <h2 class="section-title fade-in delay-1">Product intelligence<br>that speaks your language.</h2>
+    <p class="section-desc fade-in delay-2">Keen tracks products and translates the data into plain-English insights with clear next steps. One click to track. Zero learning curve.</p>
+
+    <div class="features-grid">
+      <div class="feature-card fade-in delay-1">
+        <div class="feature-icon">⚡</div>
+        <h3>One-Click Tracking</h3>
+        <p>Browse Amazon. See a product worth watching. Click "Track." That's it. Keen handles price, BSR, reviews, seller count, and stock status automatically.</p>
+      </div>
+      <div class="feature-card fade-in delay-2">
+        <div class="feature-icon">🧠</div>
+        <h3>AI-Powered Insights</h3>
+        <p>No more interpreting graphs. Keen tells you: "Demand is rising, competition is flat — this is a window." Clear signals, not raw data.</p>
+      </div>
+      <div class="feature-card fade-in delay-3">
+        <div class="feature-icon">🔔</div>
+        <h3>Smart Alerts</h3>
+        <p>Get notified when it matters: price drops below your target margin, a new competitor enters the listing, BSR spikes signal opportunity.</p>
+      </div>
+      <div class="feature-card fade-in delay-4">
+        <div class="feature-icon">📈</div>
+        <h3>PPC Profit Analyzer</h3>
+        <p>Coming soon: connect your Amazon Ads and see true profit per campaign after ALL fees. Know exactly what to kill and what to scale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="comparison" id="comparison">
+  <div class="container">
+    <div class="section-label fade-in">Why Switch</div>
+    <h2 class="section-title fade-in delay-1">Keepa shows charts.<br>Keen shows clarity.</h2>
+
+    <table class="comparison-table fade-in delay-2">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Keepa</th>
+          <th>Helium 10</th>
+          <th class="keen-col">Keen</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Price tracking</td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="keen-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>BSR tracking</td>
+          <td><span class="check">✓</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="keen-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Plain-English AI insights</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td class="keen-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Actionable recommendations</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="cross">✗</span></td>
+          <td class="keen-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Modern, clean UI</td>
+          <td><span class="cross">✗</span></td>
+          <td>Partial</td>
+          <td class="keen-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Generous free tier</td>
+          <td>200 products</td>
+          <td>None</td>
+          <td class="keen-col">10 products, full features</td>
+        </tr>
+        <tr>
+          <td>Privacy-first (no scraping)</td>
+          <td><span class="cross">✗</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="keen-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Starting price</td>
+          <td>$21/mo</td>
+          <td>$99/mo</td>
+          <td class="keen-col">Free</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <div class="section-label fade-in" style="text-align:center">Pricing</div>
+    <h2 class="section-title fade-in delay-1" style="text-align:center;margin:0 auto 0">Simple pricing.<br>Start free, upgrade when ready.</h2>
+
+    <div class="pricing-grid">
+      <div class="pricing-card fade-in delay-1">
+        <div class="pricing-tier">Free</div>
+        <div class="pricing-price">$0<span>/forever</span></div>
+        <div class="pricing-desc">Everything you need to start tracking products and making smarter decisions.</div>
+        <ul class="pricing-features">
+          <li>10 tracked products</li>
+          <li>Price, BSR & review tracking</li>
+          <li>AI-powered insights</li>
+          <li>Trend indicators</li>
+          <li>Chrome extension</li>
+        </ul>
+        <a href="#early-access" class="pricing-btn pricing-btn-outline">Join Waitlist</a>
+      </div>
+
+      <div class="pricing-card featured fade-in delay-2">
+        <div class="pricing-tier">Pro</div>
+        <div class="pricing-price">$15<span>/mo</span></div>
+        <div class="pricing-desc">For serious sellers doing regular product research and sourcing decisions.</div>
+        <ul class="pricing-features">
+          <li>Unlimited tracked products</li>
+          <li>Smart alerts & notifications</li>
+          <li>Historical trend charts</li>
+          <li>Weekly email digest</li>
+          <li>Alibaba margin integration</li>
+          <li>CSV export</li>
+        </ul>
+        <a href="#early-access" class="pricing-btn pricing-btn-filled">Join Waitlist</a>
+      </div>
+
+      <div class="pricing-card fade-in delay-3">
+        <div class="pricing-tier">Pro + PPC</div>
+        <div class="pricing-price">$39<span>/mo</span></div>
+        <div class="pricing-desc">For sellers running ads who need true profit visibility on every campaign.</div>
+        <ul class="pricing-features">
+          <li>Everything in Pro</li>
+          <li>PPC Profit Analyzer</li>
+          <li>Campaign kill/scale signals</li>
+          <li>Daily spend tracking</li>
+          <li>Margin impact reporting</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#early-access" class="pricing-btn pricing-btn-outline">Join Waitlist</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="early-access">
+  <div class="container">
+    <div class="cta-content">
+      <div class="section-label fade-in" style="text-align:center">Early Access</div>
+      <h2 class="section-title fade-in delay-1">Be first in line.</h2>
+      <p class="section-desc fade-in delay-2">We're building Keen right now. Join the waitlist and be the first to get access when we launch. Early members get Pro free for 30 days.</p>
+      <div class="email-form fade-in delay-3">
+        <input type="email" placeholder="your@email.com" id="email-input">
+        <button onclick="handleSubmit()">Get Early Access</button>
+      </div>
+      <p class="cta-note fade-in delay-4">No spam. Just a heads-up when Keen is ready. Unsubscribe anytime.</p>
+      <p id="success-msg" style="display:none;color:var(--green);margin-top:16px;font-weight:600;">You're on the list! We'll be in touch soon.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-logo">Keen<span style="color:var(--accent)">.</span></div>
+      <div class="footer-links">
+        <a href="mailto:hello@keen.technology">Contact</a>
+        <a href="#">Twitter/X</a>
+        <a href="#">Privacy</a>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);">© 2026 Keen Technology. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Scroll nav
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Fade-in on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Email form
+function handleSubmit() {
+  const input = document.getElementById('email-input');
+  const msg = document.getElementById('success-msg');
+  const email = input.value.trim();
+  if (email && email.includes('@')) {
+    input.style.display = 'none';
+    document.querySelector('.email-form button').style.display = 'none';
+    msg.style.display = 'block';
+    // In production: send to your email service (Loops, Mailchimp, etc.)
+    console.log('Email captured:', email);
+  } else {
+    input.style.borderColor = 'var(--red)';
+    input.setAttribute('placeholder', 'Please enter a valid email');
+    setTimeout(() => {
+      input.style.borderColor = 'var(--border-subtle)';
+      input.setAttribute('placeholder', 'your@email.com');
+    }, 2000);
+  }
+}
+
+// Enter key for email form
+document.getElementById('email-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') handleSubmit();
+});
+</script>
+</body>
+</html>
