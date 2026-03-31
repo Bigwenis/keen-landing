@@ -1137,23 +1137,44 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
 // Email form
-function handleSubmit() {
+async function handleSubmit() {
   const input = document.getElementById('email-input');
+  const btn = document.querySelector('.email-form button');
   const msg = document.getElementById('success-msg');
   const email = input.value.trim();
-  if (email && email.includes('@')) {
-    input.style.display = 'none';
-    document.querySelector('.email-form button').style.display = 'none';
-    msg.style.display = 'block';
-    // In production: send to your email service (Loops, Mailchimp, etc.)
-    console.log('Email captured:', email);
-  } else {
+
+  if (!email || !email.includes('@')) {
     input.style.borderColor = 'var(--red)';
     input.setAttribute('placeholder', 'Please enter a valid email');
     setTimeout(() => {
       input.style.borderColor = 'var(--border-subtle)';
       input.setAttribute('placeholder', 'your@email.com');
     }, 2000);
+    return;
+  }
+
+  btn.textContent = 'Joining...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    if (res.ok) {
+      input.style.display = 'none';
+      btn.style.display = 'none';
+      msg.style.display = 'block';
+    } else {
+      throw new Error('Failed');
+    }
+  } catch {
+    btn.textContent = 'Try Again';
+    btn.disabled = false;
+    input.style.borderColor = 'var(--red)';
+    setTimeout(() => { input.style.borderColor = 'var(--border-subtle)'; }, 2000);
   }
 }
 
