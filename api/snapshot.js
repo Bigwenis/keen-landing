@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const err = await response.text();
       console.error('Supabase error:', err);
-      return res.status(500).json({ error: 'Failed to save snapshot' });
+      return res.status(500).json({ error: 'Failed to save snapshot', detail: err, url: SUPABASE_URL ? 'set' : 'missing', key: SUPABASE_ANON_KEY ? 'set' : 'missing' });
     }
 
     return res.status(200).json({ success: true });
