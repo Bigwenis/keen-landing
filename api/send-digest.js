@@ -9,14 +9,14 @@ const WINDOW_DAYS    = 7;
 const TOP_N          = 5;
 
 export default async function handler(req, res) {
-  // Allow GET (cron) or POST (manual trigger with secret)
-  if (req.method === 'POST') {
-    const secret = process.env.DIGEST_SECRET;
-    if (secret && req.headers['x-digest-secret'] !== secret) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-  } else if (req.method !== 'GET') {
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // All requests require the secret
+  const secret = process.env.DIGEST_SECRET;
+  if (!secret || req.headers['x-digest-secret'] !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   const RESEND_KEY    = process.env.RESEND_API_KEY;
