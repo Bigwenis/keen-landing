@@ -167,13 +167,9 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
       <div class="section">
         <div class="section-header">
           <div class="section-title">Your Tracked Products</div>
-          <span style="font-size:13px;color:var(--text-3)">Synced from extension</span>
+          <span id="products-count" style="font-size:13px;color:var(--text-3)"></span>
         </div>
-        <div class="empty">
-          <h3>Install the Keen extension to track products</h3>
-          <p>Visit any Amazon product page and click "Track This Product". Your products will appear here automatically once you log in through the extension.</p>
-          <a href="https://chromewebstore.google.com" target="_blank">Get the extension →</a>
-        </div>
+        <div id="products-content"><div class="loading">Loading…</div></div>
       </div>
     </div>
 
@@ -295,6 +291,7 @@ client.auth.getSession().then(async function(r) {
     return;
   }
   var user = r.data.session.user;
+  window.keenUserId = user.id;
   document.getElementById('user-email').textContent = user.email;
   document.getElementById('account-email').textContent = user.email;
   document.getElementById('topbar-sub').textContent = 'Welcome back, ' + user.email.split('@')[0];
@@ -332,8 +329,9 @@ function switchView(name, el) {
   var meta = viewTitles[name] || [name, ''];
   document.getElementById('topbar-title').textContent = meta[0];
   document.getElementById('topbar-sub').textContent = meta[1];
-  if (name === 'trending') loadTrending();
+  if (name === 'trending')  loadTrending();
   if (name === 'community') loadCommunity();
+  if (name === 'products' && window.keenUserId) loadProducts(window.keenUserId);
 }
 
 function fmt(n) { return typeof n === 'number' ? n.toLocaleString() : '—'; }
@@ -391,6 +389,55 @@ function loadTrending() {
       el.innerHTML = renderMoversTable(data.trending, 50);
     })
     .catch(function() { el.innerHTML = '<div class="empty"><p>Could not load trending data.</p></div>'; });
+}
+
+function loadProducts(userId) {
+  var el       = document.getElementById('products-content');
+  var countEl  = document.getElementById('products-count');
+  if (!el || el.dataset.loaded) return;
+  el.dataset.loaded = '1';
+  el.innerHTML = '<div class="loading">Loading your products…</div>';
+
+  fetch('/api/user-products?userId=' + encodeURIComponent(userId))
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !data.products || !data.products.length) {
+        el.innerHTML =
+          '<div class="empty">' +
+            '<h3>No synced products yet</h3>' +
+            '<p>Sign into the extension and track products on Amazon — they\'ll appear here automatically.</p>' +
+            '<a href="https://keen.technology/support" target="_blank">How to get started →</a>' +
+          '</div>';
+        return;
+      }
+
+      if (countEl) countEl.textContent = data.total + ' product' + (data.total === 1 ? '' : 's') + ' synced';
+
+      el.innerHTML =
+        '<table class="product-table">' +
+          '<thead><tr><th>Product</th><th>BSR</th><th>Price</th><th>Reviews</th><th>Snapshots</th><th>Last Seen</th></tr></thead>' +
+          '<tbody>' +
+          data.products.map(function(p) {
+            var ago = Math.floor((Date.now() - p.lastSeen) / 86400000);
+            var agoLabel = ago <= 0 ? 'Today' : ago === 1 ? '1 day ago' : ago + ' days ago';
+            return '<tr>' +
+              '<td>' +
+                '<div class="product-title">' + esc(p.title || p.asin) + '</div>' +
+                '<div class="product-asin"><a href="https://www.amazon.com/dp/' + esc(p.asin) + '" target="_blank" style="color:var(--accent)">' + esc(p.asin) + ' ↗</a>' +
+                (p.brand ? ' · ' + esc(p.brand) : '') + '</div>' +
+              '</td>' +
+              '<td>' + (p.current.bsr ? '#' + fmt(p.current.bsr) : '—') + '</td>' +
+              '<td>' + (p.current.price ? '$' + p.current.price.toFixed(2) : '—') + '</td>' +
+              '<td>' + (p.current.reviews ? fmt(p.current.reviews) : '—') + '</td>' +
+              '<td>' + p.snapshotCount + '</td>' +
+              '<td style="color:var(--text-3)">' + agoLabel + '</td>' +
+            '</tr>';
+          }).join('') +
+          '</tbody></table>';
+    })
+    .catch(function() {
+      el.innerHTML = '<div class="empty"><p>Could not load products.</p></div>';
+    });
 }
 
 function loadCommunity() {
