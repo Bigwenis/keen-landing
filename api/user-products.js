@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   if (!userId) return res.status(400).json({ error: 'userId required' });
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
 
   try {
     // Fetch all snapshots for this user, latest first
