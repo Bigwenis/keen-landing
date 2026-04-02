@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { asin, price, bsr, reviews, rating, sellers, category, rootCategory, categoryPath, title, brand, timestamp } = req.body;
+  const { asin, price, bsr, reviews, rating, sellers, category, rootCategory, categoryPath, title, brand, timestamp, userId } = req.body;
 
   if (!asin || !timestamp) {
     return res.status(400).json({ error: 'asin and timestamp required' });
@@ -36,6 +36,7 @@ export default async function handler(req, res) {
         category_path: categoryPath  || null,
         title:         title         || null,
         brand:         brand         || null,
+        user_id:       userId        || null,
         timestamp
       })
     });
