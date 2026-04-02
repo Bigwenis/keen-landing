@@ -99,6 +99,13 @@ document.getElementById('signup-form').addEventListener('submit', async function
     return;
   }
 
+  // Send welcome email (fire and forget — don't block on it)
+  fetch('/api/welcome', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email })
+  }).catch(function() {});
+
   if (result.data.session) {
     // Auto-confirmed — go straight to dashboard
     window.location.href = '/dashboard';
