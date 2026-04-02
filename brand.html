@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Intelligence — Keen</title>
+<meta name="description" content="Crowd-sourced Amazon brand intelligence. Track any brand's full product catalog — BSR trends, price movement, review velocity, and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-deep: #0a0e1a;
+  --bg-card: #111827;
+  --bg-card-hover: #1a2235;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-accent: rgba(56,189,248,0.2);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #38bdf8;
+  --accent-glow: rgba(56,189,248,0.12);
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --sans: 'DM Sans', system-ui, sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg-deep); color: var(--text-primary); line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+/* NAV */
+nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; background: rgba(10,14,26,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle); }
+.nav-logo { font-size: 18px; font-weight: 900; color: var(--accent); letter-spacing: .04em; text-decoration: none; }
+.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-links a { font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500; }
+.nav-links a:hover { color: var(--text-primary); }
+.nav-cta { padding: 8px 16px; border-radius: 8px; background: var(--accent-glow); border: 1px solid var(--border-accent); color: var(--accent) !important; font-weight: 700 !important; font-size: 13px; }
+
+/* HERO */
+.hero { padding: 120px 24px 48px; text-align: center; max-width: 680px; margin: 0 auto; }
+.hero-eyebrow { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+.hero h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; color: var(--text-primary); margin-bottom: 14px; line-height: 1.15; }
+.hero p { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
+
+/* SEARCH */
+.search-wrap { max-width: 520px; margin: 0 auto 12px; display: flex; gap: 10px; }
+.search-input { flex: 1; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-accent); background: rgba(56,189,248,0.05); color: var(--text-primary); font-size: 15px; font-family: var(--sans); outline: none; }
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus { border-color: var(--accent); background: rgba(56,189,248,0.08); }
+.search-btn { padding: 14px 24px; border-radius: 12px; background: var(--accent); color: #0a0e1a; font-size: 14px; font-weight: 800; border: none; cursor: pointer; font-family: var(--sans); white-space: nowrap; }
+.search-btn:hover { background: #7dd3fc; }
+.search-btn:disabled { opacity: .5; cursor: default; }
+.search-hint { font-size: 12px; color: var(--text-muted); text-align: center; }
+
+/* STATUS */
+.status-bar { max-width: 900px; margin: 0 auto 24px; padding: 0 24px; min-height: 24px; text-align: center; font-size: 13px; color: var(--text-muted); }
+.status-bar.error { color: var(--red); }
+.status-bar.loading { color: var(--accent); }
+
+/* RESULTS */
+.results { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; display: none; }
+
+/* SUMMARY CARDS */
+.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+.summary-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 18px 20px; }
+.summary-card.accent { border-color: var(--border-accent); background: var(--accent-glow); }
+.summary-label { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.summary-value { font-size: 22px; font-weight: 800; color: var(--text-primary); }
+.summary-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.summary-value.green { color: var(--green); }
+.summary-value.red { color: var(--red); }
+
+/* BRAND HEADER */
+.brand-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.brand-name { font-size: 26px; font-weight: 800; color: var(--text-primary); }
+.brand-meta { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.brand-badge { padding: 4px 12px; border-radius: 999px; background: var(--accent-glow); border: 1px solid var(--border-accent); color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+
+/* SECTION */
+.section-title { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle); }
+
+/* ASIN TABLE */
+.asin-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+.asin-table th { text-align: left; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); padding: 8px 12px; border-bottom: 1px solid var(--border-subtle); }
+.asin-table td { padding: 12px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; color: var(--text-secondary); vertical-align: middle; }
+.asin-table tr:last-child td { border-bottom: none; }
+.asin-table tr:hover td { background: var(--bg-card-hover); }
+.asin-title { font-size: 13px; color: var(--text-primary); font-weight: 500; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asin-code { font-size: 11px; color: var(--text-muted); margin-top: 2px; font-family: monospace; }
+.asin-link { color: var(--accent); text-decoration: none; font-size: 11px; }
+.asin-link:hover { text-decoration: underline; }
+.pill { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.pill-up { background: rgba(74,222,128,.1); color: var(--green); border: 1px solid rgba(74,222,128,.2); }
+.pill-down { background: rgba(248,113,113,.1); color: var(--red); border: 1px solid rgba(248,113,113,.18); }
+.pill-neutral { background: rgba(255,255,255,.05); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+/* SPARKLINE */
+.spark-cell { width: 100px; }
+.spark-svg { display: block; width: 100px; height: 28px; }
+.spark-line { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.spark-line-down { stroke: var(--red); }
+
+/* EMPTY */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); font-size: 14px; }
+
+/* PRO GATE */
+.pro-gate { background: var(--bg-card); border: 1px solid rgba(251,191,36,.2); border-radius: 16px; padding: 32px; text-align: center; margin-top: 32px; }
+.pro-gate h3 { font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
+.pro-gate p { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+.pro-gate-btn { display: inline-block; padding: 12px 28px; border-radius: 10px; background: rgba(251,191,36,.15); border: 1px solid rgba(251,191,36,.3); color: var(--yellow); font-size: 14px; font-weight: 800; text-decoration: none; }
+.pro-gate-btn:hover { background: rgba(251,191,36,.25); }
+
+@media (max-width: 640px) {
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .search-wrap { flex-direction: column; }
+  .asin-table th:nth-child(n+4), .asin-table td:nth-child(n+4) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/">KEEN.</a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/support">Support</a>
+    <a href="/" class="nav-cta">Get Extension</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Brand Intelligence</div>
+  <h1>See any brand's Amazon performance</h1>
+  <p>Crowd-sourced BSR trends, price movement, and review velocity across a brand's full tracked catalog.</p>
+
+  <div class="search-wrap">
+    <input class="search-input" id="brand-input" type="text" placeholder="Enter a brand name (e.g. Anker, Instant Pot)" autocomplete="off">
+    <button class="search-btn" id="search-btn">Search</button>
+  </div>
+  <div class="search-hint">Data is crowd-sourced from Keen users tracking Amazon products</div>
+</div>
+
+<div class="status-bar" id="status-bar"></div>
+<div class="results" id="results"></div>
+
+<script>
+var searchBtn  = document.getElementById('search-btn');
+var brandInput = document.getElementById('brand-input');
+var statusBar  = document.getElementById('status-bar');
+var resultsEl  = document.getElementById('results');
+
+function fmt(n) { return typeof n === 'number' ? n.toLocaleString() : '—'; }
+function fmtPrice(n) { return typeof n === 'number' ? '$' + n.toFixed(2) : '—'; }
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g, function(c) {
+    return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+function setStatus(msg, type) {
+  statusBar.textContent = msg;
+  statusBar.className = 'status-bar' + (type ? ' ' + type : '');
+}
+
+function bsrPill(trends) {
+  if (!trends || !trends.bsr) return '<span class="pill pill-neutral">—</span>';
+  var pct = Math.abs(trends.bsr.pctMove);
+  return trends.bsr.improved
+    ? '<span class="pill pill-up">▲ ' + pct + '%</span>'
+    : '<span class="pill pill-down">▼ ' + pct + '%</span>';
+}
+
+function buildSparkline(history, field) {
+  if (!history || history.length < 2) return '<span style="color:var(--text-muted);font-size:11px">—</span>';
+  var points = history.filter(function(h) { return typeof h[field] === 'number'; }).map(function(h) { return h[field]; });
+  if (points.length < 2) return '<span style="color:var(--text-muted);font-size:11px">—</span>';
+  var w = 100, h = 28, pad = 3;
+  var min = Math.min.apply(null, points), max = Math.max.apply(null, points);
+  var range = Math.max(1, max - min);
+  var step = (w - pad * 2) / (points.length - 1);
+  var coords = points.map(function(v, i) {
+    return [(pad + step * i).toFixed(1), (pad + ((max - v) / range) * (h - pad * 2)).toFixed(1)];
+  });
+  var polyline = coords.map(function(p) { return p[0] + ',' + p[1]; }).join(' ');
+  var improved = points[points.length - 1] < points[0]; // for BSR, lower is better
+  var lineClass = improved ? 'spark-line' : 'spark-line spark-line-down';
+  return '<svg class="spark-svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none"><polyline points="' + polyline + '" class="' + lineClass + '"></polyline></svg>';
+}
+
+function renderResults(data, history) {
+  var s = data.summary || {};
+  var asins = data.asins || [];
+
+  var summaryHtml =
+    '<div class="summary-grid">' +
+      '<div class="summary-card accent">' +
+        '<div class="summary-label">Products Tracked</div>' +
+        '<div class="summary-value">' + data.asinCount + '</div>' +
+        '<div class="summary-sub">' + fmt(data.totalSnapshotCount) + ' total snapshots</div>' +
+      '</div>' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Best BSR</div>' +
+        '<div class="summary-value">' + (s.bsr ? '#' + fmt(s.bsr.best) : '—') + '</div>' +
+        '<div class="summary-sub">' + (s.bsr ? 'Avg #' + fmt(s.bsr.avg) : '') + '</div>' +
+      '</div>' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Price Range</div>' +
+        '<div class="summary-value">' + (s.price ? fmtPrice(s.price.min) + ' – ' + fmtPrice(s.price.max) : '—') + '</div>' +
+        '<div class="summary-sub">' + (s.price ? 'Avg ' + fmtPrice(s.price.avg) : '') + '</div>' +
+      '</div>' +
+      '<div class="summary-card">' +
+        '<div class="summary-label">Total Reviews</div>' +
+        '<div class="summary-value">' + (s.totalReviews ? fmt(s.totalReviews) : '—') + '</div>' +
+        '<div class="summary-sub">' +
+          (s.climbingCount ? '<span style="color:var(--green)">' + s.climbingCount + ' climbing</span>' : '') +
+          (s.climbingCount && s.decliningCount ? ' · ' : '') +
+          (s.decliningCount ? '<span style="color:var(--red)">' + s.decliningCount + ' declining</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  var tableRows = asins.map(function(a) {
+    var asinHistory = history[a.asin] || null;
+    var spark = asinHistory ? buildSparkline(asinHistory, 'bsr') : '<span style="color:var(--text-muted);font-size:11px">—</span>';
+    var reviewVelocity = a.trends && a.trends.reviews && a.trends.reviews.perWeek
+      ? '<span class="pill pill-up">+' + a.trends.reviews.perWeek + '/wk</span>'
+      : '<span class="pill pill-neutral">—</span>';
+    return '<tr>' +
+      '<td>' +
+        '<div class="asin-title">' + esc(a.title || a.asin) + '</div>' +
+        '<div class="asin-code"><a class="asin-link" href="https://www.amazon.com/dp/' + esc(a.asin) + '" target="_blank">' + esc(a.asin) + ' ↗</a></div>' +
+      '</td>' +
+      '<td>' + (a.current.bsr ? '#' + fmt(a.current.bsr) : '—') + '</td>' +
+      '<td>' + bsrPill(a.trends) + '</td>' +
+      '<td class="spark-cell">' + spark + '</td>' +
+      '<td>' + fmtPrice(a.current.price) + '</td>' +
+      '<td>' + fmt(a.current.reviews) + '</td>' +
+      '<td>' + reviewVelocity + '</td>' +
+      '<td>' + a.snapshotCount + '</td>' +
+    '</tr>';
+  }).join('');
+
+  var tableHtml =
+    '<div class="section-title">All Tracked Products</div>' +
+    '<table class="asin-table">' +
+      '<thead><tr>' +
+        '<th>Product</th>' +
+        '<th>BSR</th>' +
+        '<th>BSR Move</th>' +
+        '<th>Trend</th>' +
+        '<th>Price</th>' +
+        '<th>Reviews</th>' +
+        '<th>Review Velocity</th>' +
+        '<th>Snapshots</th>' +
+      '</tr></thead>' +
+      '<tbody>' + (tableRows || '<tr><td colspan="8" class="empty-state">No products found for this brand.</td></tr>') + '</tbody>' +
+    '</table>';
+
+  var proGate =
+    '<div class="pro-gate">' +
+      '<h3>Want full brand monitoring?</h3>' +
+      '<p>Pro gives you API access, weekly brand digest emails, category trend feeds, and historical data going back to day one.</p>' +
+      '<a class="pro-gate-btn" href="/">Join the Pro waitlist →</a>' +
+    '</div>';
+
+  resultsEl.innerHTML =
+    '<div class="brand-header">' +
+      '<div>' +
+        '<div class="brand-name">' + esc(data.brand) + '</div>' +
+        '<div class="brand-meta">' + data.asinCount + ' products · ' + fmt(data.totalSnapshotCount) + ' snapshots · Updated just now</div>' +
+      '</div>' +
+      '<span class="brand-badge">Live Data</span>' +
+    '</div>' +
+    summaryHtml +
+    tableHtml +
+    proGate;
+
+  resultsEl.style.display = 'block';
+}
+
+function search() {
+  var brand = brandInput.value.trim();
+  if (!brand) return;
+
+  searchBtn.disabled = true;
+  resultsEl.style.display = 'none';
+  setStatus('Fetching data for "' + brand + '"…', 'loading');
+
+  // Fetch brand data + history for each ASIN
+  fetch('/api/brand?brand=' + encodeURIComponent(brand))
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (!res.ok) {
+        setStatus(res.data.error === 'No data found for this brand'
+          ? 'No data found for "' + brand + '" yet. Install Keen and start tracking their products.'
+          : 'Error: ' + (res.data.error || 'Unknown error'), 'error');
+        searchBtn.disabled = false;
+        return;
+      }
+
+      var data = res.data;
+      setStatus('');
+
+      // Fetch per-ASIN history for sparklines (fire all in parallel, best-effort)
+      var asinList = (data.asins || []).slice(0, 20); // cap at 20 to avoid too many requests
+      var historyMap = {};
+      var pending = asinList.length;
+
+      if (!pending) { renderResults(data, historyMap); searchBtn.disabled = false; return; }
+
+      asinList.forEach(function(a) {
+        fetch('/api/asin-history?asin=' + encodeURIComponent(a.asin))
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(h) { if (h && h.history) historyMap[a.asin] = h.history; })
+          .catch(function() {})
+          .finally(function() {
+            pending--;
+            if (pending === 0) { renderResults(data, historyMap); searchBtn.disabled = false; }
+          });
+      });
+    })
+    .catch(function() {
+      setStatus('Network error — please try again.', 'error');
+      searchBtn.disabled = false;
+    });
+}
+
+searchBtn.addEventListener('click', search);
+brandInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') search(); });
+
+// Pre-fill from URL param e.g. /brand?q=Anker
+var params = new URLSearchParams(window.location.search);
+var preload = params.get('q');
+if (preload) { brandInput.value = preload; search(); }
+</script>
+
+</body>
+</html>
