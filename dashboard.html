@@ -201,19 +201,35 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
 
     <!-- COMMUNITY DATA (Pro) -->
     <div class="view" id="view-community">
-      <div class="pro-panel">
+      <div class="pro-panel" id="community-gate">
         <h3>Community Data — Pro Feature</h3>
         <p>Unlock crowd-sourced price and BSR history pooled across all Keen users. See what the market is really doing, not just your own snapshots.</p>
         <button class="pro-panel-btn" onclick="switchView('account', document.querySelector('[data-view=account]'))">Upgrade to Pro</button>
+      </div>
+      <div id="community-content" style="display:none">
+        <div class="section">
+          <div class="section-header"><div class="section-title">Top BSR Movers — Community Pool</div></div>
+          <div id="community-movers"><div class="loading">Loading community data…</div></div>
+        </div>
       </div>
     </div>
 
     <!-- SMART ALERTS (Pro) -->
     <div class="view" id="view-alerts">
-      <div class="pro-panel">
+      <div class="pro-panel" id="alerts-gate">
         <h3>Smart Alerts — Pro Feature</h3>
         <p>Get notified when a tracked product's BSR drops sharply, price changes, or new sellers appear. Set your own thresholds and get email alerts automatically.</p>
         <button class="pro-panel-btn" onclick="switchView('account', document.querySelector('[data-view=account]'))">Upgrade to Pro</button>
+      </div>
+      <div id="alerts-content" style="display:none">
+        <div class="section">
+          <div class="section-header"><div class="section-title">Smart Alerts</div></div>
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:32px;text-align:center">
+            <div style="font-size:32px;margin-bottom:12px">🔔</div>
+            <div style="font-size:16px;font-weight:700;color:var(--text-1);margin-bottom:8px">Alert configuration coming soon</div>
+            <div style="font-size:14px;color:var(--text-2)">You're on Pro — you'll be the first to access threshold-based email alerts when they ship.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -225,10 +241,10 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
           <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Email</div>
           <div style="font-size:15px;color:var(--text-1)" id="account-email">—</div>
         </div>
-        <div style="background:var(--bg-card);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:24px">
+        <div id="plan-card" style="background:var(--bg-card);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:24px">
           <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Plan</div>
-          <div style="font-size:15px;font-weight:700;color:var(--yellow);margin-bottom:12px">Free</div>
-          <div style="font-size:13px;color:var(--text-2);margin-bottom:16px">Pro includes: community data in reports, weekly digest, brand intelligence API, smart alerts, CSV export, 500 products.</div>
+          <div id="plan-label" style="font-size:15px;font-weight:700;color:var(--yellow);margin-bottom:12px">Free</div>
+          <div id="plan-desc" style="font-size:13px;color:var(--text-2);margin-bottom:16px">Pro includes: community data in reports, weekly digest, brand intelligence API, smart alerts, CSV export, 500 products.</div>
           <button class="pro-panel-btn" style="font-size:13px;padding:10px 20px" id="upgrade-btn" onclick="startCheckout()">Upgrade to Pro — $29/mo</button>
         </div>
       </div>
@@ -243,7 +259,37 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
 var client = supabase.createClient(window.KEEN_CONFIG.SUPABASE_URL, window.KEEN_CONFIG.SUPABASE_ANON_KEY);
 
 // Auth guard
-client.auth.getSession().then(function(r) {
+function setUserPlan(isPro) {
+  if (!isPro) return;
+
+  // Topbar — hide upgrade button
+  var upgradeTopbar = document.querySelector('.upgrade-btn');
+  if (upgradeTopbar) upgradeTopbar.style.display = 'none';
+
+  // Account view — show Pro
+  var planLabel  = document.getElementById('plan-label');
+  var planDesc   = document.getElementById('plan-desc');
+  var upgradeBtn = document.getElementById('upgrade-btn');
+  var planCard   = document.getElementById('plan-card');
+  if (planLabel)  { planLabel.textContent = 'Pro'; planLabel.style.color = 'var(--accent)'; }
+  if (planDesc)   planDesc.textContent = 'You have full access to all Pro features including community data, AI reports, weekly digest, and smart alerts.';
+  if (upgradeBtn) upgradeBtn.style.display = 'none';
+  if (planCard)   planCard.style.borderColor = 'rgba(56,189,248,0.2)';
+
+  // Unlock Community Data view
+  var communityGate    = document.getElementById('community-gate');
+  var communityContent = document.getElementById('community-content');
+  if (communityGate)    communityGate.style.display    = 'none';
+  if (communityContent) communityContent.style.display = 'block';
+
+  // Unlock Smart Alerts view
+  var alertsGate    = document.getElementById('alerts-gate');
+  var alertsContent = document.getElementById('alerts-content');
+  if (alertsGate)    alertsGate.style.display    = 'none';
+  if (alertsContent) alertsContent.style.display = 'block';
+}
+
+client.auth.getSession().then(async function(r) {
   if (!r.data || !r.data.session) {
     window.location.href = '/login';
     return;
@@ -252,6 +298,13 @@ client.auth.getSession().then(function(r) {
   document.getElementById('user-email').textContent = user.email;
   document.getElementById('account-email').textContent = user.email;
   document.getElementById('topbar-sub').textContent = 'Welcome back, ' + user.email.split('@')[0];
+
+  // Check Pro status
+  try {
+    var profRes = await client.from('profiles').select('is_pro').eq('id', user.id).single();
+    if (profRes.data && profRes.data.is_pro) setUserPlan(true);
+  } catch(e) {}
+
   loadDashboard();
 });
 
@@ -280,6 +333,7 @@ function switchView(name, el) {
   document.getElementById('topbar-title').textContent = meta[0];
   document.getElementById('topbar-sub').textContent = meta[1];
   if (name === 'trending') loadTrending();
+  if (name === 'community') loadCommunity();
 }
 
 function fmt(n) { return typeof n === 'number' ? n.toLocaleString() : '—'; }
@@ -337,6 +391,21 @@ function loadTrending() {
       el.innerHTML = renderMoversTable(data.trending, 50);
     })
     .catch(function() { el.innerHTML = '<div class="empty"><p>Could not load trending data.</p></div>'; });
+}
+
+function loadCommunity() {
+  var el = document.getElementById('community-movers');
+  if (!el || el.dataset.loaded) return;
+  el.dataset.loaded = '1';
+  el.innerHTML = '<div class="loading">Loading…</div>';
+  fetch('/api/trending?windowDays=14&limit=50')
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data) { el.innerHTML = '<div class="empty"><p>No community data yet.</p></div>'; return; }
+      var all = (data.trending || []).concat(data.declining || []);
+      el.innerHTML = renderMoversTable(all, 50);
+    })
+    .catch(function() { el.innerHTML = '<div class="empty"><p>Could not load data.</p></div>'; });
 }
 
 function searchBrand() {
