@@ -1,7 +1,10 @@
 {
   "rewrites": [
-    { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/support", "destination": "/support.html" },
-    { "source": "/brand", "destination": "/brand.html" }
+    { "source": "/privacy",   "destination": "/privacy.html" },
+    { "source": "/support",   "destination": "/support.html" },
+    { "source": "/brand",     "destination": "/brand.html" },
+    { "source": "/signup",    "destination": "/signup.html" },
+    { "source": "/login",     "destination": "/login.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" }
   ]
 }
