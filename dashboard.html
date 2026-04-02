@@ -392,10 +392,9 @@ function loadTrending() {
 }
 
 function loadProducts(userId) {
-  var el       = document.getElementById('products-content');
-  var countEl  = document.getElementById('products-count');
-  if (!el || el.dataset.loaded) return;
-  el.dataset.loaded = '1';
+  var el      = document.getElementById('products-content');
+  var countEl = document.getElementById('products-count');
+  if (!el) return;
   el.innerHTML = '<div class="loading">Loading your products…</div>';
 
   fetch('/api/user-products?userId=' + encodeURIComponent(userId))
