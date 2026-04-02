@@ -229,7 +229,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
           <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Plan</div>
           <div style="font-size:15px;font-weight:700;color:var(--yellow);margin-bottom:12px">Free</div>
           <div style="font-size:13px;color:var(--text-2);margin-bottom:16px">Pro includes: community data in reports, weekly digest, brand intelligence API, smart alerts, CSV export, 500 products.</div>
-          <button class="pro-panel-btn" style="font-size:13px;padding:10px 20px" onclick="alert('Stripe integration coming soon — email hello@keen.technology to get early Pro access.')">Upgrade to Pro — $29/mo</button>
+          <button class="pro-panel-btn" style="font-size:13px;padding:10px 20px" id="upgrade-btn" onclick="startCheckout()">Upgrade to Pro — $29/mo</button>
         </div>
       </div>
     </div>
@@ -372,6 +372,45 @@ function searchBrand() {
 document.getElementById('brand-search-input').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') searchBrand();
 });
+
+var currentUser = null;
+client.auth.getUser().then(function(r) { if (r.data) currentUser = r.data.user; });
+
+async function startCheckout() {
+  var btn = document.getElementById('upgrade-btn');
+  if (!currentUser) { window.location.href = '/login'; return; }
+  btn.textContent = 'Loading…';
+  btn.disabled = true;
+  try {
+    var res = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentUser.email, userId: currentUser.id })
+    });
+    var data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Could not start checkout. Try again or email hello@keen.technology');
+      btn.textContent = 'Upgrade to Pro — $29/mo';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+    btn.textContent = 'Upgrade to Pro — $29/mo';
+    btn.disabled = false;
+  }
+}
+
+// Show success banner if returning from Stripe
+if (new URLSearchParams(window.location.search).get('upgraded') === '1') {
+  var banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#4ade80;color:#0a0e1a;text-align:center;padding:12px;font-size:14px;font-weight:800;z-index:9999';
+  banner.textContent = '🎉 Welcome to Pro! Your account has been upgraded.';
+  document.body.appendChild(banner);
+  setTimeout(function() { banner.remove(); }, 6000);
+  window.history.replaceState({}, '', '/dashboard');
+}
 </script>
 </body>
 </html>
