@@ -1,1144 +1,324 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-accent="cyan" data-apex="green">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Keen — The Offensive Decision Engine for Amazon FBA</title>
-<meta name="description" content="Stop tracking products passively. Keen dynamically injects an Apex Score into Amazon search results, automatically flagging vulnerable Private Label targets and generating sourcing Blueprints.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Keen — Apex Intelligence for Amazon Operators</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,400..600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-:root {
-  --bg-deep: #0a0e1a;
-  --bg-card: #111827;
-  --bg-card-hover: #1a2235;
-  --border-subtle: rgba(255,255,255,0.06);
-  --border-accent: rgba(56,189,248,0.2);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent: #38bdf8;
-  --accent-glow: rgba(56,189,248,0.15);
-  --accent-bright: #7dd3fc;
-  --green: #4ade80;
-  --red: #f87171;
-  --orange: #fb923c;
-  --serif: 'Instrument Serif', Georgia, serif;
-  --sans: 'DM Sans', system-ui, -apple-system, sans-serif;
-}
+    body {
+      background: #05070d;
+      color: #e7eef9;
+      font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      font-size: 16px;
+    }
 
-html { scroll-behavior: smooth; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
 
-body {
-  font-family: var(--sans);
-  background: var(--bg-deep);
-  color: var(--text-primary);
-  line-height: 1.6;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(120, 170, 230, 0.12);
+    }
 
-/* ===== GRAIN OVERLAY ===== */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 9999;
-}
+    header h1 {
+      font-size: 24px;
+      font-weight: bold;
+    }
 
-/* ===== UTILITY ===== */
-.container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+    nav {
+      display: flex;
+      gap: 30px;
+    }
 
-/* ===== NAV ===== */
-nav {
-  position: fixed;
-  top: 0; left: 0; width: 100%;
-  z-index: 100;
-  padding: 20px 0;
-  transition: all 0.4s ease;
-  background: transparent;
-}
-nav.scrolled {
-  background: rgba(10,14,26,0.85);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 14px 0;
-}
-nav .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.nav-logo {
-  font-family: var(--sans);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: var(--text-primary);
-  text-decoration: none;
-  text-transform: uppercase;
-}
-.nav-logo span { color: var(--accent); }
-.nav-links { display: flex; gap: 32px; align-items: center; }
-.nav-links a {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  transition: color 0.3s;
-}
-.nav-links a:hover { color: var(--text-primary); }
-.nav-cta {
-  background: var(--accent) !important;
-  color: var(--bg-deep) !important;
-  padding: 10px 24px !important;
-  border-radius: 8px;
-  font-weight: 600 !important;
-  transition: all 0.3s !important;
-}
-.nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+    nav a {
+      color: #e7eef9;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
 
-/* ===== HERO ===== */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  position: relative;
-  padding: 120px 0 80px;
-}
+    nav a:hover {
+      color: #38bdf8;
+    }
 
-/* Gradient orbs */
-.hero::before {
-  content: '';
-  position: absolute;
-  top: -20%;
-  right: -10%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: -15%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(74,222,128,0.05) 0%, transparent 70%);
-  pointer-events: none;
-}
+    .btn {
+      padding: 12px 24px;
+      background: #38bdf8;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
 
-.hero-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: center;
-  position: relative;
-  z-index: 2;
-}
+    .btn:hover {
+      background: #22d3ee;
+    }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background: var(--accent-glow);
-  border: 1px solid var(--border-accent);
-  border-radius: 100px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--accent);
-  margin-bottom: 28px;
-  letter-spacing: 0.3px;
-}
-.hero-badge .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  animation: pulse-dot 2s ease infinite;
-}
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
+    section {
+      padding: 80px 0;
+      border-bottom: 1px solid rgba(120, 170, 230, 0.12);
+    }
 
-.hero h1 {
-  font-family: var(--serif);
-  font-size: clamp(42px, 5vw, 64px);
-  line-height: 1.1;
-  font-weight: 400;
-  margin-bottom: 24px;
-  letter-spacing: -0.5px;
-}
-.hero h1 em {
-  font-style: italic;
-  color: var(--accent);
-}
+    section h2 {
+      font-size: 44px;
+      font-family: "Instrument Serif", serif;
+      margin-bottom: 40px;
+      text-align: center;
+    }
 
-.hero-sub {
-  font-size: 18px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: 40px;
-  max-width: 500px;
-}
+    .hero {
+      text-align: center;
+      padding: 120px 0;
+    }
 
-.hero-cta-group {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+    .hero h1 {
+      font-size: 56px;
+      font-family: "Instrument Serif", serif;
+      margin-bottom: 30px;
+      line-height: 1.2;
+    }
 
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 32px;
-  background: var(--accent);
-  color: var(--bg-deep);
-  font-weight: 600;
-  font-size: 15px;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: all 0.3s;
-  border: none;
-  cursor: pointer;
-  font-family: var(--sans);
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(56,189,248,0.25); }
+    .hero p {
+      font-size: 18px;
+      color: #9aa8c2;
+      max-width: 700px;
+      margin: 0 auto 40px;
+    }
 
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 28px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 15px;
-  border-radius: 10px;
-  text-decoration: none;
-  border: 1px solid var(--border-subtle);
-  transition: all 0.3s;
-}
-.btn-secondary:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .problem p,
+    .features p {
+      font-size: 18px;
+      color: #9aa8c2;
+      max-width: 800px;
+      margin: 0 auto 20px;
+      text-align: center;
+    }
 
-/* Hero mock product card */
-.hero-visual {
-  position: relative;
-}
-.product-card-mock {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  padding: 28px;
-  position: relative;
-  overflow: hidden;
-}
-.product-card-mock::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--green));
-}
-.mock-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-}
-.mock-product-name {
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-.mock-asin {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-family: monospace;
-}
-.mock-badge-live {
-  padding: 4px 12px;
-  background: rgba(74,222,128,0.1);
-  border: 1px solid rgba(74,222,128,0.2);
-  border-radius: 100px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--green);
-  letter-spacing: 0.5px;
-}
-.mock-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.mock-metric {
-  padding: 14px;
-  background: rgba(255,255,255,0.02);
-  border-radius: 10px;
-  border: 1px solid var(--border-subtle);
-}
-.mock-metric-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
-}
-.mock-metric-value {
-  font-size: 22px;
-  font-weight: 700;
-}
-.mock-metric-change {
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 4px;
-}
-.up { color: var(--green); }
-.down { color: var(--red); }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+    }
 
-.mock-insight {
-  padding: 16px;
-  background: var(--accent-glow);
-  border: 1px solid var(--border-accent);
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-.mock-insight-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--accent);
-  font-weight: 600;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.mock-insight-text {
-  font-size: 14px;
-  color: var(--text-primary);
-  line-height: 1.6;
-}
+    .feature-card {
+      background: rgba(18, 26, 46, 0.55);
+      border: 1px solid rgba(120, 170, 230, 0.12);
+      padding: 30px;
+      border-radius: 12px;
+      transition: all 0.3s;
+    }
 
-.mock-chart {
-  height: 60px;
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  padding-top: 8px;
-}
-.mock-chart-bar {
-  flex: 1;
-  background: var(--accent);
-  border-radius: 3px 3px 0 0;
-  opacity: 0.3;
-  transition: opacity 0.3s;
-}
-.mock-chart-bar:nth-last-child(-n+5) { opacity: 0.6; }
-.mock-chart-bar:nth-last-child(-n+2) { opacity: 1; }
+    .feature-card:hover {
+      border-color: rgba(120, 170, 230, 0.22);
+      background: rgba(28, 40, 68, 0.65);
+    }
 
-/* Float animation */
-.product-card-mock {
-  animation: float 6s ease-in-out infinite;
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
+    .feature-card h3 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #38bdf8;
+    }
 
-/* ===== SOCIAL PROOF BAR ===== */
-.social-proof {
-  padding: 40px 0;
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.proof-items {
-  display: flex;
-  justify-content: center;
-  gap: 48px;
-  flex-wrap: wrap;
-}
-.proof-item {
-  text-align: center;
-}
-.proof-number {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--accent);
-  font-family: var(--sans);
-}
-.proof-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
+    .feature-card p {
+      font-size: 14px;
+      color: #9aa8c2;
+      margin: 0;
+      text-align: left;
+    }
 
-/* ===== PROBLEM SECTION ===== */
-.problem {
-  padding: 120px 0;
-}
-.section-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: var(--accent);
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-.section-title {
-  font-family: var(--serif);
-  font-size: clamp(32px, 3.5vw, 48px);
-  line-height: 1.15;
-  margin-bottom: 24px;
-  max-width: 700px;
-}
-.section-desc {
-  font-size: 17px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  max-width: 600px;
-  margin-bottom: 60px;
-}
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+    }
 
-.problem-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-.problem-card {
-  padding: 32px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  transition: all 0.3s;
-}
-.problem-card:hover {
-  border-color: rgba(248,113,113,0.3);
-  transform: translateY(-4px);
-}
-.problem-icon {
-  font-size: 28px;
-  margin-bottom: 20px;
-}
-.problem-card h3 {
-  font-size: 17px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-.problem-card p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
+    .pricing-card {
+      background: rgba(18, 26, 46, 0.55);
+      border: 1px solid rgba(120, 170, 230, 0.12);
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+    }
 
-/* ===== FEATURES ===== */
-.features {
-  padding: 120px 0;
-  position: relative;
-}
-.features::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
-}
+    .pricing-card h3 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #38bdf8;
+    }
 
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-top: 60px;
-}
-.feature-card {
-  padding: 36px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  transition: all 0.4s;
-  position: relative;
-  overflow: hidden;
-}
-.feature-card::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: linear-gradient(135deg, var(--accent-glow), transparent);
-  opacity: 0;
-  transition: opacity 0.4s;
-}
-.feature-card:hover::after { opacity: 1; }
-.feature-card:hover { border-color: var(--border-accent); transform: translateY(-4px); }
-.feature-card > * { position: relative; z-index: 2; }
+    .pricing-card .price {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 20px 0;
+      color: #4ade80;
+    }
 
-.feature-icon {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-glow);
-  border: 1px solid var(--border-accent);
-  border-radius: 12px;
-  font-size: 22px;
-  margin-bottom: 20px;
-}
-.feature-card h3 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-.feature-card p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
+    .pricing-card p {
+      font-size: 14px;
+      color: #9aa8c2;
+      margin: 15px 0;
+    }
 
-/* ===== COMPARISON ===== */
-.comparison {
-  padding: 120px 0;
-}
-.comparison-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin-top: 60px;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid var(--border-subtle);
-}
-.comparison-table th, .comparison-table td {
-  padding: 18px 24px;
-  text-align: left;
-  font-size: 14px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-.comparison-table thead th {
-  background: var(--bg-card);
-  font-weight: 600;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-}
-.comparison-table thead th:last-child {
-  color: var(--accent);
-}
-.comparison-table tbody td {
-  color: var(--text-secondary);
-}
-.comparison-table tbody td:first-child {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-.comparison-table tbody td:last-child {
-  color: var(--accent-bright);
-  font-weight: 500;
-}
-.comparison-table tbody tr:last-child td { border-bottom: none; }
-.comparison-table tbody tr:hover { background: rgba(255,255,255,0.02); }
-.comparison-table .check { color: var(--green); }
-.comparison-table .cross { color: var(--text-muted); opacity: 0.4; }
-.keen-col { background: rgba(56,189,248,0.03); }
+    .testimonial {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      font-style: italic;
+      color: #9aa8c2;
+      font-size: 18px;
+      line-height: 1.8;
+    }
 
-/* ===== PRICING PREVIEW ===== */
-.pricing {
-  padding: 120px 0;
-}
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 60px;
-}
-.pricing-card {
-  padding: 36px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  transition: all 0.3s;
-  position: relative;
-}
-.pricing-card.featured {
-  border-color: var(--accent);
-  background: linear-gradient(180deg, rgba(56,189,248,0.05), var(--bg-card));
-}
-.pricing-card.featured::before {
-  content: 'MOST POPULAR';
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 4px 16px;
-  background: var(--accent);
-  color: var(--bg-deep);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  border-radius: 100px;
-}
-.pricing-tier {
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-}
-.pricing-price {
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.pricing-price span { font-size: 16px; font-weight: 400; color: var(--text-muted); }
-.pricing-desc {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 28px;
-  line-height: 1.6;
-}
-.pricing-features {
-  list-style: none;
-  margin-bottom: 32px;
-}
-.pricing-features li {
-  padding: 8px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.pricing-features li::before {
-  content: '✓';
-  color: var(--accent);
-  font-weight: 600;
-}
-.pricing-btn {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  border-radius: 10px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none;
-  transition: all 0.3s;
-  font-family: var(--sans);
-  cursor: pointer;
-  border: none;
-}
-.pricing-btn-outline {
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-}
-.pricing-btn-outline:hover { border-color: var(--accent); color: var(--accent); }
-.pricing-btn-filled {
-  background: var(--accent);
-  color: var(--bg-deep);
-}
-.pricing-btn-filled:hover { opacity: 0.9; }
+    .testimonial .author {
+      margin-top: 30px;
+      font-style: normal;
+      color: #e7eef9;
+      font-weight: 600;
+    }
 
-/* ===== CTA / EMAIL CAPTURE ===== */
-.cta-section {
-  padding: 120px 0;
-  text-align: center;
-  position: relative;
-}
-.cta-section::before {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-.cta-content {
-  position: relative;
-  z-index: 2;
-}
-.cta-section .section-title {
-  margin: 0 auto 16px;
-  text-align: center;
-}
-.cta-section .section-desc {
-  margin: 0 auto 40px;
-  text-align: center;
-}
+    .cta-section {
+      text-align: center;
+      padding: 100px 0;
+    }
 
-.email-form {
-  display: flex;
-  gap: 12px;
-  max-width: 480px;
-  margin: 0 auto;
-  justify-content: center;
-}
-.email-form input {
-  flex: 1;
-  padding: 16px 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-size: 15px;
-  font-family: var(--sans);
-  outline: none;
-  transition: border-color 0.3s;
-}
-.email-form input::placeholder { color: var(--text-muted); }
-.email-form input:focus { border-color: var(--accent); }
-.email-form button {
-  padding: 16px 28px;
-  background: var(--accent);
-  color: var(--bg-deep);
-  font-weight: 600;
-  font-size: 15px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: var(--sans);
-  transition: all 0.3s;
-  white-space: nowrap;
-}
-.email-form button:hover { opacity: 0.9; transform: translateY(-1px); }
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
 
-.cta-note {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 16px;
-}
+    .cta-buttons .btn {
+      padding: 15px 40px;
+      font-size: 16px;
+    }
 
-/* ===== FOOTER ===== */
-footer {
-  padding: 48px 0;
-  border-top: 1px solid var(--border-subtle);
-}
-.footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.footer-logo {
-  font-family: var(--sans);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-.footer-links {
-  display: flex;
-  gap: 24px;
-}
-.footer-links a {
-  color: var(--text-muted);
-  text-decoration: none;
-  font-size: 13px;
-  transition: color 0.3s;
-}
-.footer-links a:hover { color: var(--text-primary); }
-
-/* ===== ANIMATIONS ===== */
-.fade-in {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
-}
-.fade-in.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-.delay-1 { transition-delay: 0.1s; }
-.delay-2 { transition-delay: 0.2s; }
-.delay-3 { transition-delay: 0.3s; }
-.delay-4 { transition-delay: 0.4s; }
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-  .hero-content { grid-template-columns: 1fr; gap: 48px; }
-  .hero-visual { order: -1; }
-  .problem-grid { grid-template-columns: 1fr; }
-  .features-grid { grid-template-columns: 1fr; }
-  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
-  .nav-links { display: none; }
-  .proof-items { gap: 32px; }
-  .comparison-table { font-size: 13px; }
-  .comparison-table th, .comparison-table td { padding: 12px 14px; }
-  .email-form { flex-direction: column; }
-  .footer-content { flex-direction: column; gap: 24px; text-align: center; }
-}
-</style>
+    footer {
+      background: #0a0e1a;
+      padding: 40px 0;
+      text-align: center;
+      border-top: 1px solid rgba(120, 170, 230, 0.12);
+      color: #5e6b84;
+    }
+  </style>
 </head>
 <body>
-
-<!-- NAV -->
-<nav id="nav">
-  <div class="container">
-    <a href="#" class="nav-logo">Keen<span>.</span></a>
-    <div class="nav-links">
+  <header class="container">
+    <h1>KEEN.</h1>
+    <nav>
       <a href="#features">Features</a>
-      <a href="#comparison">vs Keepa</a>
       <a href="#pricing">Pricing</a>
-      <a href="/login">Sign In</a>
-      <a href="/signup" class="nav-cta">Get Started Free</a>
-    </div>
-  </div>
-</nav>
+      <a href="#signin">Sign In</a>
+      <button class="btn">Get Started Free</button>
+    </nav>
+  </header>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="container">
-    <div class="hero-content">
-      <div>
-        <div class="hero-badge">
-          <span class="dot"></span>
-          Now Live — Free Chrome Extension
-        </div>
-        <h1>The Offensive Decision Engine for<br><em>Private Label.</em></h1>
-        <p class="hero-sub">Stop staring at charts. Keen dynamically tracks millions of ASINs and injects an <b>Apex Score</b> directly into your Amazon search results—instantly flagging vulnerable competitors and generating the exact sourcing Blueprint you need to attack their market share.</p>
-        <div class="hero-cta-group">
-          <a href="/signup" class="btn-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            Get Started Free
-          </a>
-          <a href="#features" class="btn-secondary">See How It Works →</a>
-        </div>
+  <section class="hero container">
+    <h1>More data was never the problem. The problem is the moment before you commit: Should I launch this, or shouldn't I?</h1>
+    <p>Keen turns any Amazon listing into a 1–99 Apex Score, a plain-English brief, and an honest answer: build a brand around this, or keep looking.</p>
+    <button class="btn">Install Free — Track 10 Products</button>
+  </section>
+
+  <section class="problem container">
+    <h2>The Problem</h2>
+    <p>Private label research got heavier, not sharper. You open ten tabs. You compare listings that all look the same. You chase an idea that seems promising — until you notice the reviews are thin, or a giant is already siphoning the profit.</p>
+    <p>Every existing tool offered to fix this by giving you more data. More data was never the problem. The problem is the moment before you commit: Should I launch this, or shouldn't I? That moment is what Keen is built for.</p>
+  </section>
+
+  <section class="features container" id="features">
+    <h2>What Keen Actually Does</h2>
+    <p>Click the Keen icon on any Amazon search result. In seconds, you get:</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>The Apex Score (1–99)</h3>
+        <p>A category-weighted vulnerability index. We audit Review Decay to find top-sellers who are bleeding customer trust so you can strike.</p>
       </div>
-
-      <div class="hero-visual">
-        <div class="product-card-mock" style="border-color: rgba(74, 222, 128, 0.4);">
-          <div class="mock-header">
-            <div>
-              <div class="mock-product-name">Silicone Kitchen Utensil Set (14pc)</div>
-              <div class="mock-asin" style="color:var(--text-muted)">B0C7K3M2X9 · Est. Vol: 3,450/mo</div>
-            </div>
-            <div class="mock-badge-live" style="background:rgba(74, 222, 128, 0.15); border: 1px solid #4ade80; color: #4ade80; display: flex; align-items: center; gap: 4px;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              APEX SCORE: 98
-            </div>
-          </div>
-          <div class="mock-metrics" style="grid-template-columns: 1fr 1fr;">
-            <div class="mock-metric">
-              <div class="mock-metric-label">Review Moat</div>
-              <div class="mock-metric-value" style="color:var(--green)">14</div>
-              <div class="mock-metric-change up">Weak Category</div>
-            </div>
-            <div class="mock-metric">
-              <div class="mock-metric-label">Content Score</div>
-              <div class="mock-metric-value" style="color:var(--green)">Poor</div>
-              <div class="mock-metric-change up">Missing A+ Content</div>
-            </div>
-          </div>
-          <div class="mock-insight" style="background: rgba(74, 222, 128, 0.05); border-color: rgba(74, 222, 128, 0.2);">
-            <div class="mock-insight-label" style="color:var(--green)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              DIFFERENTIATION BLUEPRINT
-            </div>
-            <div class="mock-insight-text"><b>Attack Strategy:</b> Highly vulnerable listing. Source a 14pc set with an added targeted utility tool (e.g., pasta fork) on Alibaba. Target a $24.99 price wedge.</div>
-          </div>
-        </div>
+      <div class="feature-card">
+        <h3>The Siphon Blueprint</h3>
+        <p>A plain-English brief. Not a dashboard—an actual written read on what's weak, what's risky, and where a better brand takes share.</p>
+      </div>
+      <div class="feature-card">
+        <h3>The Defensive Shield</h3>
+        <p>Don't just find a gap—keep it. Get alerts when a tracked ASIN's Apex Score drops >15 points in 7 days. Run Shield Audits on restocks. Backend siphon detection compares your blueprint against new sub-category arrivals.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Review Sentiment Tracker</h3>
+        <p>We watch your reviews like a hawk. If your Apex Score drops because of a bad manufacturing batch, Keen tells you exactly what "Edge" you are losing before the 1-stars tank your rank.</p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- SOCIAL PROOF -->
-<section class="social-proof">
-  <div class="container">
-    <div class="proof-items">
-      <div class="proof-item">
-        <div class="proof-number">2.5M+</div>
-        <div class="proof-label">Active Amazon Sellers</div>
-      </div>
-      <div class="proof-item">
-        <div class="proof-number">$575B</div>
-        <div class="proof-label">3P Marketplace GMV (2025)</div>
-      </div>
-      <div class="proof-item">
-        <div class="proof-number">82%</div>
-        <div class="proof-label">Use FBA Fulfillment</div>
-      </div>
-      <div class="proof-item">
-        <div class="proof-number">$0</div>
-        <div class="proof-label">To Start with Keen</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PROBLEM -->
-<section class="problem" id="problem">
-  <div class="container">
-    <div class="section-label fade-in">The Problem</div>
-    <h2 class="section-title fade-in delay-1">Your current tools give you data.<br>They never give you <em style="font-family:var(--serif);color:var(--accent)">execution roadmaps.</em></h2>
-    <p class="section-desc fade-in delay-2">FBA sellers waste hours interpreting confusing charts, switching between tabs, and second-guessing product decisions. Legacy tools were built for data nerds. You need an offensive engine.</p>
-
-    <div class="problem-grid">
-      <div class="problem-card fade-in delay-1">
-        <div class="problem-icon">📊</div>
-        <h3>Analysis Paralysis</h3>
-        <p>Keepa charts look like stock trading terminals. 15 overlapping lines, no context, no actionable recommendations. You need a PhD to read them.</p>
-      </div>
-      <div class="problem-card fade-in delay-2">
-        <div class="problem-icon">🧭</div>
-        <h3>Data Without Direction</h3>
-        <p>You know the BSR dropped. You know the price changed. But should you launch against this product? How do you actually beat it? Nobody tells you.</p>
-      </div>
-      <div class="problem-card fade-in delay-3">
-        <div class="problem-icon">💸</div>
-        <h3>Blind Sourcing</h3>
-        <p>You find a product idea, but fail to calculate True Margins until after you've paid the Alibaba supplier. By then, it's too late to differentiate.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section class="features" id="features">
-  <div class="container">
-    <div class="section-label fade-in">The Solution</div>
-    <h2 class="section-title fade-in delay-1">Market intelligence<br>that speaks your language.</h2>
-    <p class="section-desc fade-in delay-2">Keen injects directly into your Amazon search, evaluating competitors on the fly and generating concrete sourcing bluepints. Don't just track—attack.</p>
-
-    <div class="features-grid">
-      <div class="feature-card fade-in delay-1">
-        <div class="feature-icon">⚡</div>
-        <h3>On-Page Apex Scoring</h3>
-        <p>Browse Amazon natively. Keen instantly evaluates every Private Label listing for vulnerability based on review moats, content quality, and historical BSR decay—giving you a 0-100 Apex Score.</p>
-      </div>
-      <div class="feature-card fade-in delay-2">
-        <div class="feature-icon">🧠</div>
-        <h3>Differentiation Blueprints</h3>
-        <p>Click "Deep Dive" to launch the Interactive Cockpit. Keen mathematically reverse-engineers the target and prescribes exact structural differentiation strategies (like bundling and targeting vectors) to win.</p>
-      </div>
-      <div class="feature-card fade-in delay-3">
-        <div class="feature-icon">📦</div>
-        <h3>Bundle Architecture</h3>
-        <p>The Simulator tests 'Included Add-on' costs against Est. FBA Fees (30%) in real-time, proving your Net Margin holds up before you even contact a supplier on Alibaba.</p>
-      </div>
-      <div class="feature-card fade-in delay-4">
-        <div class="feature-icon">🔔</div>
-        <h3>Smart Execution Sync</h3>
-        <p>As you navigate Amazon, tracked products instantly sync back to your web Dashboard, structuring your sourcing pipeline for easy cross-referencing and BSR tracking later.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- COMPARISON -->
-<section class="comparison" id="comparison">
-  <div class="container">
-    <div class="section-label fade-in">Why Switch</div>
-    <h2 class="section-title fade-in delay-1">Incumbents give you a headache.<br>Keen gives you a roadmap.</h2>
-
-    <table class="comparison-table fade-in delay-2">
-      <thead>
-        <tr>
-          <th>Feature</th>
-          <th>Keepa / Jungle Scout</th>
-          <th class="keen-col">Keen</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>On-page Vulnerability Scoring</td>
-          <td><span class="cross">✗</span></td>
-          <td class="keen-col"><span class="check">✓</span></td>
-        </tr>
-        <tr>
-          <td>Automated Sourcing Blueprints</td>
-          <td><span class="cross">✗</span></td>
-          <td class="keen-col"><span class="check">✓</span></td>
-        </tr>
-        <tr>
-          <td>Bundling ROI Simulator</td>
-          <td><span class="cross">✗</span></td>
-          <td class="keen-col"><span class="check">✓</span></td>
-        </tr>
-        <tr>
-          <td>Data Interpretation</td>
-          <td>15 confusing overlapping lines</td>
-          <td class="keen-col">Plain-English Attack Strategies</td>
-        </tr>
-        <tr>
-          <td>Category Siphoning Logic</td>
-          <td><span class="cross">✗</span></td>
-          <td class="keen-col"><span class="check">✓</span></td>
-        </tr>
-        <tr>
-          <td>Extension Cost</td>
-          <td>Expensive monthly tiers</td>
-          <td class="keen-col">100% Free Overlay</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- PRICING -->
-<section class="pricing" id="pricing">
-  <div class="container">
-    <div class="section-label fade-in" style="text-align:center">Pricing</div>
-    <h2 class="section-title fade-in delay-1" style="text-align:center;margin:0 auto 0">Simple pricing.<br>Start free, upgrade when ready.</h2>
-
+  <section class="pricing container" id="pricing">
+    <h2>Disruptor Pricing</h2>
+    <p>Precision over noise. Value over bloat.</p>
     <div class="pricing-grid">
-      <div class="pricing-card fade-in delay-1">
-        <div class="pricing-tier">Free</div>
-        <div class="pricing-price">$0<span>/forever</span></div>
-        <div class="pricing-desc">Deploy the offensive engine directly onto Amazon to flag target opportunities.</div>
-        <ul class="pricing-features">
-          <li>Chrome extension overlay</li>
-          <li>On-page Apex Scoring</li>
-          <li>100 product tracking limit</li>
-          <li>Basic competitor stats</li>
-          <li>Review moat diagnostics</li>
-        </ul>
-        <a href="/signup" class="pricing-btn pricing-btn-outline">Get Started Free</a>
+      <div class="pricing-card">
+        <h3>The Scout</h3>
+        <div class="price">$24/mo</div>
+        <p>Unlimited Apex Score extension. The "no-brainer" for 80% of sellers.</p>
+        <button class="btn">Get Started</button>
       </div>
-
-      <div class="pricing-card featured fade-in delay-2">
-        <div class="pricing-tier">Pro</div>
-        <div class="pricing-price">$29<span>/mo</span></div>
-        <div class="pricing-desc">For sellers executing a launch. Unlock Sourcing Blueprints and Interactive Simulators.</div>
-        <ul class="pricing-features">
-          <li>Sourcing Deep Dives</li>
-          <li>Full Differentiation Blueprints</li>
-          <li>Interactive Bundling Simulator</li>
-          <li>Alibaba sourcing bridge</li>
-          <li>Web Dashboard execution sync</li>
-          <li>Unlimited tracked products</li>
-        </ul>
-        <a href="/signup" class="pricing-btn pricing-btn-filled">Start Pro →</a>
+      <div class="pricing-card">
+        <h3>The Hunter</h3>
+        <div class="price">$49/mo</div>
+        <p>10 Siphon Blueprints/mo + The Alibaba Sourcing Bridge.</p>
+        <button class="btn">Get Started</button>
       </div>
-
-      <div class="pricing-card fade-in delay-3" style="opacity:0.75;">
-        <div class="pricing-tier">Pro + Execution <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--orange);background:rgba(251,146,60,0.12);padding:2px 8px;border-radius:4px;vertical-align:middle;">Q3 2026</span></div>
-        <div class="pricing-price">$49<span>/mo</span></div>
-        <div class="pricing-desc">SP-API Hookup. Exact FBA Fees and referral parsing for absolute True Margin certainty.</div>
-        <ul class="pricing-features">
-          <li>Everything in Pro</li>
-          <li>Amazon SP-API integration</li>
-          <li>Exact True Profit margins</li>
-          <li>Automated smart alerts</li>
-          <li>PPC Budget projections <em style="font-size:11px;color:var(--orange);">(soon)</em></li>
-          <li>Private API access</li>
-        </ul>
-        <a href="#" class="pricing-btn pricing-btn-outline" style="opacity:0.5;cursor:default;">Coming Soon</a>
+      <div class="pricing-card">
+        <h3>The Empire</h3>
+        <div class="price">$99/mo</div>
+        <p>Unlimited Blueprints + Apex Architect (AI Listing Generator).</p>
+        <button class="btn">Get Started</button>
       </div>
     </div>
-  </div>
-</section>
+    <p style="margin-top: 40px; font-size: 16px;">The "Switch & Save" Credit: Show us a receipt for canceling a bloated competitor, and we'll give you 3 months of Keen for free.</p>
+  </section>
 
-<!-- CTA -->
-<section class="cta-section" id="early-access">
-  <div class="container">
-    <div class="cta-content">
-      <div class="section-label fade-in" style="text-align:center">Start Today</div>
-      <h2 class="section-title fade-in delay-1">Free to start. No credit card.</h2>
-      <p class="section-desc fade-in delay-2">Create your account in seconds and start tracking Amazon products right away. The Chrome extension is free and installs in one click.</p>
-      <div class="email-form fade-in delay-3" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <a href="/signup" style="display:inline-block;padding:14px 32px;border-radius:10px;background:var(--accent);color:#0a0e1a;font-size:15px;font-weight:800;text-decoration:none;">Create Free Account</a>
-        <a href="/login" style="display:inline-block;padding:14px 32px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);color:var(--text-secondary);font-size:15px;font-weight:600;text-decoration:none;">Sign In →</a>
-      </div>
-      <p class="cta-note fade-in delay-4">Already have the extension? <a href="/signup" style="color:var(--accent);text-decoration:none;">Create an account</a> to sync your data to the dashboard.</p>
+  <section class="container">
+    <h2>From One Operator to Another</h2>
+    <div class="testimonial">
+      <p>"Keen was built by a private label seller who got stuck in the same research spiral as everyone else. Ten tabs. Three subscriptions. Still no answer. So I built the tool I wanted. The bet is simple: if it works for me, it works for the operators one step behind me, and the operators one step ahead."</p>
+      <div class="author">— Bill, Founder</div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="container">
-    <div class="footer-content">
-      <div class="footer-logo">Keen<span style="color:var(--accent)">.</span></div>
-      <div class="footer-links">
-        <a href="mailto:hello@keen.technology">Contact</a>
-        <a href="/support">Support</a>
-        <a href="/privacy">Privacy</a>
-      </div>
-      <div style="font-size:12px;color:var(--text-muted);">© 2026 Keen Technology. All rights reserved.</div>
+  <section class="container">
+    <h2>The Brand Promise</h2>
+    <p>Fewer tabs. Faster conviction. Defensive brand security.</p>
+  </section>
+
+  <section class="cta-section container">
+    <h2>Ready to Launch Smart?</h2>
+    <div class="cta-buttons">
+      <button class="btn">Install Free</button>
+      <button class="btn" style="background: #f87171; color: #fff;">Join the Founding 500</button>
     </div>
-  </div>
-</footer>
+  </section>
 
-<script>
-// Scroll nav
-const nav = document.getElementById('nav');
-window.addEventListener('scroll', () => {
-  nav.classList.toggle('scrolled', window.scrollY > 50);
-});
-
-// Fade-in on scroll
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-// Email form
-async function handleSubmit() {
-  const input = document.getElementById('email-input');
-  const btn = document.querySelector('.email-form button');
-  const msg = document.getElementById('success-msg');
-  const email = input.value.trim();
-
-  if (!email || !email.includes('@')) {
-    input.style.borderColor = 'var(--red)';
-    input.setAttribute('placeholder', 'Please enter a valid email');
-    setTimeout(() => {
-      input.style.borderColor = 'var(--border-subtle)';
-      input.setAttribute('placeholder', 'your@email.com');
-    }, 2000);
-    return;
-  }
-
-  btn.textContent = 'Joining...';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch('/api/subscribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-
-    if (res.ok) {
-      input.style.display = 'none';
-      btn.style.display = 'none';
-      msg.style.display = 'block';
-    } else {
-      throw new Error('Failed');
-    }
-  } catch {
-    btn.textContent = 'Try Again';
-    btn.disabled = false;
-    input.style.borderColor = 'var(--red)';
-    setTimeout(() => { input.style.borderColor = 'var(--border-subtle)'; }, 2000);
-  }
-}
-
-// Enter key for email form
-document.getElementById('email-input').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') handleSubmit();
-});
-</script>
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 The Keen Bee LLC. All rights reserved.</p>
+    </div>
+  </footer>
 </body>
 </html>
