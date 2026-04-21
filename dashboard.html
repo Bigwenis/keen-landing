@@ -195,6 +195,15 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
       </div>
     </div>
 
+    <!-- COCKPIT -->
+    <div class="view" id="view-cockpit">
+      <div class="section-header">
+        <div class="section-title">Interactive Cockpit</div>
+        <a href="#" class="section-action" onclick="switchView('brand'); return false;">← Back to Tracker</a>
+      </div>
+      <div id="cockpit-content"></div>
+    </div>
+
     <!-- COMMUNITY DATA (Pro) -->
     <div class="view" id="view-community">
       <div class="pro-panel" id="community-gate">
@@ -464,6 +473,7 @@ function searchBrand() {
     .then(function(res) {
       if (!res.ok) { el.innerHTML = '<div class="empty"><p>No data found for "' + esc(brand) + '".</p></div>'; return; }
       var d = res.data;
+      window.lastBrandData = d; // save for cockpit
       var s = d.summary || {};
       var validBlueprints = (d.asins || []).filter(function(a) { return a.blueprint; });
       var avgScore = validBlueprints.length ? Math.round(validBlueprints.reduce(function(acc, b){ return acc + b.blueprint.apexScore; }, 0) / validBlueprints.length) : 0;
@@ -484,10 +494,11 @@ function searchBrand() {
             '<div style="font-size:12px;color:var(--text-3);font-family:monospace;margin-top:2px"><a href="https://www.amazon.com/dp/' + esc(t.asin) + '" target="_blank" style="color:var(--text-3);text-decoration:none">ASIN ' + esc(t.asin) + ' ↗</a></div></div>' +
             '<div style="padding:6px 12px;border-radius:8px;background:' + tBg + ';color:' + tClass + ';font-weight:800;font-size:18px;border:1px solid ' + tBorder + ';display:flex;align-items:baseline;gap:4px">' + t.blueprint.apexScore + '<span style="font-size:10px;color:var(--text-3);font-weight:700">APEX</span></div>' +
           '</div>' +
-          '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);border-radius:8px;padding:14px;font-size:13px;color:var(--text-2);line-height:1.6;">' +
+          '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);border-radius:8px;padding:14px;font-size:13px;color:var(--text-2);line-height:1.6;position:relative">' +
             '<div style="color:var(--accent);display:block;margin-bottom:6px;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase"><span style="display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:6px"></span>Siphon Angle</div>' +
             '<span style="color:var(--text-1);font-weight:500">' + esc(t.blueprint.siphonAngle) + '</span><br><br>' +
-            '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.08)"><span style="color:var(--text-3);font-size:12px">Execution Requirement: </span><span style="color:var(--text-2);font-size:12px">' + esc(t.blueprint.mustFix) + '</span></div>' +
+            '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.08);margin-bottom:34px"><span style="color:var(--text-3);font-size:12px">Execution Requirement: </span><span style="color:var(--text-2);font-size:12px">' + esc(t.blueprint.mustFix) + '</span></div>' +
+            '<button onclick="openCockpit(\'' + t.asin + '\')" style="position:absolute;bottom:14px;right:14px;background:var(--accent);color:#0a0e1a;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit">Enter Cockpit →</button>' +
           '</div>' +
         '</div>';
       }).join('');
@@ -512,7 +523,7 @@ function searchBrand() {
           '<div class="stat-card"><div class="stat-label">Total Reviews</div><div class="stat-value">' + fmt(s.totalReviews) + '</div></div>' +
         '</div>' +
         '<div class="section-title" style="margin-bottom:12px;margin-top:12px">All Tracked ASINs</div>' +
-        '<table class="product-table"><thead><tr><th>Product</th><th>BSR</th><th>Apex Score</th><th>Price</th><th>Reviews</th><th>Snapshots</th></tr></thead><tbody>' +
+        '<table class="product-table"><thead><tr><th>Product</th><th>BSR</th><th>Apex Score</th><th>Price</th><th>Reviews</th><th>Cockpit</th></tr></thead><tbody>' +
         (d.asins || []).map(function(a) {
           var apClass = 'pill-neutral';
           if (a.blueprint && a.blueprint.color === 'green') apClass = 'pill-up';
@@ -525,11 +536,97 @@ function searchBrand() {
             '<td>' + apexBadge + '</td>' +
             '<td>' + (a.current.price ? '$' + a.current.price.toFixed(2) : '—') + '</td>' +
             '<td>' + fmt(a.current.reviews) + '</td>' +
-            '<td>' + a.snapshotCount + '</td></tr>';
+            '<td><button onclick="openCockpit(\'' + a.asin + '\')" style="background:rgba(255,255,255,0.05);color:var(--text-1);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer">Open</button></td></tr>';
         }).join('') +
         '</tbody></table>';
     })
     .catch(function() { el.innerHTML = '<div class="empty"><p>Network error.</p></div>'; });
+}
+
+function openCockpit(asin) {
+  switchView('cockpit');
+  var data = window.lastBrandData;
+  var product = data.asins.find(function(a) { return a.asin === asin; });
+  if (!product) return;
+  var el = document.getElementById('cockpit-content');
+  window.currentCockpitProduct = product;
+
+  // Grade color
+  var gColor = product.cockpit.listing.grade === 'A' ? 'var(--green)' : product.cockpit.listing.grade === 'B' ? 'var(--yellow)' : 'var(--red)';
+
+  var ppcRows = (product.cockpit.ppc || []).map(function(k) {
+    return '<tr><td>' + esc(k.term) + '</td><td>' + fmt(k.volume) + '</td><td>$' + k.cpc.toFixed(2) + '</td><td><span class="pill pill-neutral">' + k.competition + '</span></td></tr>';
+  }).join('');
+
+  var cPrice = product.current.price || 29.99;
+
+  el.innerHTML = 
+    '<div style="margin-bottom:24px">' +
+      '<div style="font-size:24px;font-weight:800;color:var(--text-1);margin-bottom:4px">' + esc(product.title) + '</div>' +
+      '<div style="font-size:13px;color:var(--text-3);font-family:monospace">' + esc(product.asin) + ' · Current Price: $' + cPrice.toFixed(2) + '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">' +
+      // REPORT CARD
+      '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px">' +
+        '<div class="section-title">Listing Report Card</div>' +
+        '<div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">' +
+          '<div style="font-size:48px;font-weight:900;color:' + gColor + ';line-height:1">' + product.cockpit.listing.grade + '</div>' +
+          '<div style="font-size:13px;color:var(--text-2)">Score: ' + product.cockpit.listing.score + '/100<br><span style="color:var(--red)">Vulnerability: ' + esc(product.cockpit.listing.weakness) + '</span></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;color:var(--text-2)">' +
+          '<div>Gallery Images: <strong style="color:var(--text-1)">' + product.cockpit.listing.images + '/7</strong></div>' +
+          '<div>Video: <strong style="color:' + (product.cockpit.listing.hasVideo ? 'var(--green)' : 'var(--red)') + '">' + (product.cockpit.listing.hasVideo ? 'Yes' : 'No') + '</strong></div>' +
+          '<div>A+ Content: <strong style="color:' + (product.cockpit.listing.hasAplus ? 'var(--green)' : 'var(--red)') + '">' + (product.cockpit.listing.hasAplus ? 'Yes' : 'No') + '</strong></div>' +
+          '<div>Title Length: <strong style="color:var(--text-1)">' + product.cockpit.listing.titleLength + ' chars</strong></div>' +
+        '</div>' +
+      '</div>' +
+      // PPC MATRIX
+      '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px">' +
+        '<div class="section-title">PPC Keyword Matrix</div>' +
+        '<table class="product-table" style="background:transparent;border:none"><thead><tr><th style="padding-left:0">Keyword</th><th>Vol</th><th>Est. CPC</th><th>Comp</th></tr></thead><tbody>' +
+        ppcRows +
+        '</tbody></table>' +
+      '</div>' +
+    '</div>' +
+    // BUNDLING SIMULATOR
+    '<div style="background:var(--accent-glow);border:1px solid var(--border-accent);border-radius:14px;padding:32px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">' +
+        '<div class="section-title" style="border:none;margin:0;color:var(--accent)">Sourcing & Bundling Simulator</div>' +
+        '<div class="pill pill-up" style="font-size:12px;padding:4px 10px">Interactive</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:16px;margin-bottom:24px">' +
+        '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Target Price</div><input type="number" id="sim-price" value="' + cPrice + '" step="0.50" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-1);outline:none;font-weight:700"></div>' +
+        '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Base Unit Cost</div><input type="number" id="sim-cost" value="' + (cPrice * 0.2).toFixed(2) + '" step="0.10" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-1);outline:none"></div>' +
+        '<div><div style="font-size:11px;color:var(--accent);margin-bottom:6px">+ Bundle Add-on Cost</div><input type="number" id="sim-bundle" value="0.00" step="0.10" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-accent);background:var(--bg);color:var(--text-1);outline:none"></div>' +
+        '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Est FBA Fees (30%)</div><input type="number" id="sim-fba" value="' + (cPrice * 0.3).toFixed(2) + '" readonly style="width:100%;padding:10px;border-radius:8px;border:1px dashed var(--border);background:transparent;color:var(--text-3);outline:none"></div>' +
+        '<div style="background:var(--bg);border-radius:8px;border:1px solid var(--green);padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:center"><div style="font-size:11px;color:var(--green);margin-bottom:2px">Net Margin</div><div id="sim-margin" style="font-size:20px;font-weight:900;color:var(--green)">--</div></div>' +
+      '</div>' +
+      '<div style="font-size:13px;color:var(--text-2);text-align:center">💡 <b>Concept:</b> Add a cheap bundled accessory to visually differentiate from the competitor, ensuring they cannot effectively PPC bid against your superior perceived value.</div>' +
+    '</div>';
+
+  attachSimEvents();
+  simBundling();
+}
+
+function attachSimEvents() {
+  document.getElementById('sim-price').addEventListener('input', simBundling);
+  document.getElementById('sim-cost').addEventListener('input', simBundling);
+  document.getElementById('sim-bundle').addEventListener('input', simBundling);
+}
+
+function simBundling() {
+  var p = parseFloat(document.getElementById('sim-price').value) || 0;
+  var c = parseFloat(document.getElementById('sim-cost').value) || 0;
+  var b = parseFloat(document.getElementById('sim-bundle').value) || 0;
+  var fba = p * 0.30;
+  document.getElementById('sim-fba').value = fba.toFixed(2);
+  var net = p - c - b - fba;
+  var margin = p > 0 ? ((net / p) * 100) : 0;
+  var mEl = document.getElementById('sim-margin');
+  mEl.textContent = margin.toFixed(1) + '%';
+  if (margin >= 30) { mEl.style.color = 'var(--green)'; mEl.parentElement.style.borderColor = 'var(--green)'; }
+  else if (margin >= 15) { mEl.style.color = 'var(--yellow)'; mEl.parentElement.style.borderColor = 'var(--yellow)'; }
+  else { mEl.style.color = 'var(--red)'; mEl.parentElement.style.borderColor = 'var(--red)'; }
 }
 
 document.getElementById('brand-search-input').addEventListener('keypress', function(e) {

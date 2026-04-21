@@ -139,12 +139,31 @@ export default async function handler(req, res) {
       if (score >= 80) color = 'green';
       else if (score >= 60) color = 'yellow';
       
-      const siphonAngle = score >= 80 
-        ? "High vulnerability detected. Competitor relies entirely on legacy rank without modern listing fundamentals." 
-        : "Listing is entrenched. Proceed only if your Alibaba sourcing wedge allows for 30%+ margin suppression.";
-      const mustFix = score >= 80 
-        ? "Overhaul gallery images and introduce A+ content."
-        : "Match existing A+ content depth and offer 20% price wedge.";
+      // Procedural Mock Data for Product Cockpit 
+      // 1. Listing Fundamentals Grade
+      const listingScore = 40 + (asinHash % 55); 
+      let listingGrade = 'C';
+      if (listingScore >= 90) listingGrade = 'A';
+      else if (listingScore >= 80) listingGrade = 'B';
+      else if (listingScore < 60) listingGrade = 'D';
+
+      const listingStatus = {
+        grade: listingGrade,
+        score: listingScore,
+        images: 3 + (asinHash % 5), 
+        hasVideo: (asinHash % 2) === 0,
+        hasAplus: listingScore > 80,
+        titleLength: 60 + (asinHash % 120),
+        weakness: listingScore < 70 ? 'Missing A+ Content & Video' : 'Sub-optimal keyword density in bullets'
+      };
+
+      // 2. PPC Keyword Matrix
+      const baseVol = 5000 + (asinHash * 10 % 25000);
+      const ppcKeywords = [
+        { term: 'main keyword target', volume: baseVol, cpc: +(0.8 + (asinHash % 150) / 100).toFixed(2), competition: 'High' },
+        { term: 'secondary longtail search', volume: Math.round(baseVol * 0.4), cpc: +(0.4 + (asinHash % 80) / 100).toFixed(2), competition: 'Medium' },
+        { term: 'bundle specific term', volume: Math.round(baseVol * 0.15), cpc: +(0.2 + (asinHash % 40) / 100).toFixed(2), competition: 'Low' }
+      ];
 
       asins.push({
         asin,
@@ -159,6 +178,10 @@ export default async function handler(req, res) {
           color,
           mustFix,
           siphonAngle
+        },
+        cockpit: {
+          listing: listingStatus,
+          ppc: ppcKeywords
         },
         current: {
           price:   typeof latest.price   === 'number' ? latest.price   : null,
