@@ -5,8 +5,28 @@
     { "source": "/brand",     "destination": "/brand.html" },
     { "source": "/signup",    "destination": "/signup.html" },
     { "source": "/login",     "destination": "/login.html" },
-    { "source": "/dashboard",       "destination": "/dashboard.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/reset-password",  "destination": "/reset-password.html" },
     { "source": "/update-password", "destination": "/update-password.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)\\.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/dashboard",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/brand",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
   ]
 }
