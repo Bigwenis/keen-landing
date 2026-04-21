@@ -301,6 +301,9 @@ client.auth.getSession().then(async function(r) {
   }
   var user = r.data.session.user;
   window.keenUserId = user.id;
+  document.body.dataset.userId = user.id;
+  document.body.dataset.userEmail = user.email;
+  
   document.getElementById('user-email').textContent = user.email;
   document.getElementById('account-email').textContent = user.email;
   document.getElementById('topbar-sub').textContent = 'Welcome back, ' + user.email.split('@')[0];
@@ -311,7 +314,6 @@ client.auth.getSession().then(async function(r) {
     if (profRes.data && profRes.data.is_pro) setUserPlan(true);
   } catch(e) {}
 
-  // Intercept ?asin= parameter from Chrome Extension
   var urlParams = new URLSearchParams(window.location.search);
   var hookedAsin = urlParams.get('asin');
   if (hookedAsin) {
@@ -434,7 +436,7 @@ function loadProducts(userId) {
 
       el.innerHTML =
         '<table class="product-table">' +
-          '<thead><tr><th>Product</th><th>BSR</th><th>Price</th><th>Reviews</th><th>Snapshots</th><th>Last Seen</th></tr></thead>' +
+          '<thead><tr><th>Product</th><th>BSR</th><th>Price</th><th>Reviews</th><th>Snapshots</th><th>Last Seen</th><th>Action</th></tr></thead>' +
           '<tbody>' +
           data.products.map(function(p) {
             var ago = Math.floor((Date.now() - p.lastSeen) / 86400000);
@@ -447,16 +449,24 @@ function loadProducts(userId) {
               '</td>' +
               '<td>' + (p.current.bsr ? '#' + fmt(p.current.bsr) : '—') + '</td>' +
               '<td>' + (p.current.price ? '$' + p.current.price.toFixed(2) : '—') + '</td>' +
-              '<td>' + (p.current.reviews ? fmt(p.current.reviews) : '—') + '</td>' +
-              '<td>' + p.snapshotCount + '</td>' +
-              '<td style="color:var(--text-3)">' + agoLabel + '</td>' +
+              '<td>' + fmt(p.current.reviews) + ' (' + (p.current.rating || '—') + ')</td>' +
+              '<td>' + fmt(p.snapshotCount) + '</td>' +
+              '<td>' + agoLabel + '</td>' +
+              '<td><button class="pro-panel-btn" style="padding:4px 8px;font-size:11px" onclick="cockpitJump(\'' + esc(p.asin) + '\')">Launch Cockpit</button></td>' +
             '</tr>';
+
           }).join('') +
           '</tbody></table>';
     })
     .catch(function() {
       el.innerHTML = '<div class="empty"><p>Could not load products.</p></div>';
     });
+}
+
+function cockpitJump(asin) {
+  switchView('brand', document.querySelector('[data-view=brand]'));
+  document.getElementById('brand-search-input').value = asin;
+  searchBrand().then(function() { openCockpit(asin); }).catch(function(){});
 }
 
 function loadCommunity() {
