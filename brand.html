@@ -225,12 +225,19 @@ function renderResults(data, history) {
     var reviewVelocity = a.trends && a.trends.reviews && a.trends.reviews.perWeek
       ? '<span class="pill pill-up">+' + a.trends.reviews.perWeek + '/wk</span>'
       : '<span class="pill pill-neutral">—</span>';
+      
+    var apClass = 'pill-neutral';
+    if (a.blueprint && a.blueprint.color === 'green') apClass = 'pill-up';
+    else if (a.blueprint && a.blueprint.color === 'red') apClass = 'pill-down';
+    var apexBadge = a.blueprint ? '<span class="pill ' + apClass + '">' + a.blueprint.apexScore + '/100</span>' : '—';
+
     return '<tr>' +
       '<td>' +
         '<div class="asin-title">' + esc(a.title || a.asin) + '</div>' +
         '<div class="asin-code"><a class="asin-link" href="https://www.amazon.com/dp/' + esc(a.asin) + '" target="_blank">' + esc(a.asin) + ' ↗</a></div>' +
       '</td>' +
       '<td>' + (a.current.bsr ? '#' + fmt(a.current.bsr) : '—') + '</td>' +
+      '<td>' + apexBadge + '</td>' +
       '<td>' + bsrPill(a.trends) + '</td>' +
       '<td class="spark-cell">' + spark + '</td>' +
       '<td>' + fmtPrice(a.current.price) + '</td>' +
@@ -246,6 +253,7 @@ function renderResults(data, history) {
       '<thead><tr>' +
         '<th>Product</th>' +
         '<th>BSR</th>' +
+        '<th>Apex</th>' +
         '<th>BSR Move</th>' +
         '<th>Trend</th>' +
         '<th>Price</th>' +
@@ -253,7 +261,7 @@ function renderResults(data, history) {
         '<th>Review Velocity</th>' +
         '<th>Snapshots</th>' +
       '</tr></thead>' +
-      '<tbody>' + (tableRows || '<tr><td colspan="8" class="empty-state">No products found for this brand.</td></tr>') + '</tbody>' +
+      '<tbody>' + (tableRows || '<tr><td colspan="9" class="empty-state">No products found for this brand.</td></tr>') + '</tbody>' +
     '</table>';
 
   var proGate =
