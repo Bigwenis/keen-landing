@@ -191,6 +191,44 @@ function renderResults(data, history) {
   var s = data.summary || {};
   var asins = data.asins || [];
 
+  var validBlueprints = asins.filter(function(a) { return a.blueprint; });
+  var avgScore = validBlueprints.length ? Math.round(validBlueprints.reduce(function(acc, b){ return acc + b.blueprint.apexScore; }, 0) / validBlueprints.length) : 0;
+  var heroColor = avgScore >= 80 ? 'var(--green)' : avgScore >= 60 ? 'var(--yellow)' : 'var(--red)';
+  var heroBg = avgScore >= 80 ? 'rgba(74,222,128,0.1)' : avgScore >= 60 ? 'rgba(251,191,36,0.1)' : 'rgba(248,113,113,0.1)';
+  var heroShadow = avgScore >= 80 ? 'rgba(74,222,128,0.03)' : avgScore >= 60 ? 'rgba(251,191,36,0.03)' : 'rgba(248,113,113,0.03)';
+  var heroText = avgScore >= 80 ? 'Prime Sourcing Target' : avgScore >= 60 ? 'Moderately Vulnerable' : 'Highly Entrenched';
+
+  var topTargets = [...validBlueprints].sort(function(a,b){ return b.blueprint.apexScore - a.blueprint.apexScore; }).slice(0, 2);
+
+  var targetsHtml = topTargets.map(function(t) {
+    var tClass = t.blueprint.color === 'green' ? 'var(--green)' : t.blueprint.color === 'yellow' ? 'var(--yellow)' : 'var(--red)';
+    var tBg = t.blueprint.color === 'green' ? 'rgba(74,222,128,0.08)' : t.blueprint.color === 'yellow' ? 'rgba(251,191,36,0.08)' : 'rgba(248,113,113,0.08)';
+    var tBorder = t.blueprint.color === 'green' ? 'rgba(74,222,128,0.2)' : t.blueprint.color === 'yellow' ? 'rgba(251,191,36,0.2)' : 'rgba(248,113,113,0.2)';
+    return '<div style="background:var(--bg-card);border:1px solid ' + tBorder + ';border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;flex:1;box-shadow:0 4px 20px ' + heroShadow + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+        '<div><div style="font-size:14px;font-weight:700;color:var(--text-primary);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.title || t.asin) + '</div>' +
+        '<div style="font-size:12px;color:var(--text-muted);font-family:monospace;margin-top:2px"><a href="https://www.amazon.com/dp/' + esc(t.asin) + '" target="_blank" style="color:var(--text-muted);text-decoration:none">ASIN ' + esc(t.asin) + ' ↗</a></div></div>' +
+        '<div style="padding:6px 12px;border-radius:8px;background:' + tBg + ';color:' + tClass + ';font-weight:800;font-size:18px;border:1px solid ' + tBorder + ';display:flex;align-items:baseline;gap:4px">' + t.blueprint.apexScore + '<span style="font-size:10px;color:var(--text-muted);font-weight:700">APEX</span></div>' +
+      '</div>' +
+      '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);border-radius:8px;padding:14px;font-size:13px;color:var(--text-secondary);line-height:1.6;">' +
+        '<div style="color:var(--accent);display:block;margin-bottom:6px;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase"><span style="display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:6px"></span>Siphon Angle</div>' +
+        '<span style="color:var(--text-primary);font-weight:500">' + esc(t.blueprint.siphonAngle) + '</span><br><br>' +
+        '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.08)"><span style="color:var(--text-muted);font-size:12px">Execution Requirement: </span><span style="color:var(--text-secondary);font-size:12px">' + esc(t.blueprint.mustFix) + '</span></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var heroHtml = validBlueprints.length ? 
+    '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-left:4px solid ' + heroColor + ';border-radius:16px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;box-shadow:0 8px 32px ' + heroShadow + '">' +
+      '<div>' +
+        '<div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Brand Vulnerability Index</div>' +
+        '<div style="font-size:20px;font-weight:800;color:var(--text-primary)">' + heroText + '</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:42px;font-weight:900;color:' + heroColor + ';line-height:1">' + avgScore + '</div>' +
+      '</div>' +
+    '</div>' : '';
+
   var summaryHtml =
     '<div class="summary-grid">' +
       '<div class="summary-card accent">' +
@@ -279,6 +317,8 @@ function renderResults(data, history) {
       '</div>' +
       '<span class="brand-badge">Live Data</span>' +
     '</div>' +
+    heroHtml +
+    (targetsHtml ? '<div style="margin-bottom:32px"><div style="font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px"><span style="display:flex;width:12px;height:12px;background:var(--accent);border-radius:50%;align-items:center;justify-content:center"><span style="width:4px;height:4px;background:var(--bg-deep);border-radius:50%"></span></span> Top Siphon Targets</div><div style="display:flex;gap:16px">' + targetsHtml + '</div></div>' : '') +
     summaryHtml +
     tableHtml +
     proGate;
