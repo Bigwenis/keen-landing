@@ -172,6 +172,21 @@ export default async function handler(req, res) {
         { term: 'bundle specific term', volume: Math.round(baseVol * 0.15), cpc: +(0.2 + (asinHash % 40) / 100).toFixed(2), competition: 'Low' }
       ];
 
+      // 3. Bundle Architects
+      const ideasPool = ["Vacuum Sealer Pump", "Premium Silicone Lids", "Travel Case", "Cleaning Brush Kit", "Magnetic Attachments", "Heavy-Duty Handles", "Replacement Filters", "Gift Box Setup"];
+      const bundleIdeas = [
+        { 
+          product: ideasPool[asinHash % ideasPool.length], 
+          velocity: 1500 + (asinHash % 3000), 
+          logic: "Connected product with high standalone search volume. Visually separates listing." 
+        },
+        { 
+          product: ideasPool[(asinHash + 3) % ideasPool.length], 
+          velocity: 800 + (asinHash % 1500), 
+          logic: "Low-cost Alibaba sourcing add-on that boosts perceived retail value by $8." 
+        }
+      ];
+
       asins.push({
         asin,
         title:         data.title,
@@ -188,7 +203,8 @@ export default async function handler(req, res) {
         },
         cockpit: {
           listing: listingStatus,
-          ppc: ppcKeywords
+          ppc: ppcKeywords,
+          bundles: bundleIdeas
         },
         current: {
           price:   typeof latest.price   === 'number' ? latest.price   : null,

@@ -588,6 +588,21 @@ function openCockpit(asin) {
         '</tbody></table>' +
       '</div>' +
     '</div>' +
+    // RECOMMENDED BUNDLES
+    ((product.cockpit.bundles && product.cockpit.bundles.length) ? 
+      '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:24px">' +
+        '<div class="section-title" style="margin-bottom:8px">Recommended Bundle Architects</div>' +
+        '<div style="font-size:13px;color:var(--text-3);margin-bottom:20px">To successfully differentiate and hijack this listing, source these highly-related products and bundle them into the same ASIN.</div>' +
+        '<div style="display:flex;gap:16px">' +
+        product.cockpit.bundles.map(function(b) {
+          return '<div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px">' +
+                   '<div style="font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:4px">📦 ' + esc(b.product) + '</div>' +
+                   '<div style="font-size:12px;color:var(--text-3);margin-bottom:12px">Est. Category Velocity: <strong style="color:var(--green)">' + fmt(b.velocity) + ' units/mo</strong></div>' +
+                   '<div style="font-size:12px;color:var(--text-2);line-height:1.5"><span style="color:var(--accent);font-weight:800">Logic:</span> ' + esc(b.logic) + '</div>' +
+                 '</div>';
+        }).join('') +
+        '</div>' +
+      '</div>' : '') +
     // BUNDLING SIMULATOR
     '<div style="background:var(--accent-glow);border:1px solid var(--border-accent);border-radius:14px;padding:32px">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">' +
@@ -597,7 +612,7 @@ function openCockpit(asin) {
       '<div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:16px;margin-bottom:24px">' +
         '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Target Price</div><input type="number" id="sim-price" value="' + cPrice + '" step="0.50" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-1);outline:none;font-weight:700"></div>' +
         '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Base Unit Cost</div><input type="number" id="sim-cost" value="' + (cPrice * 0.2).toFixed(2) + '" step="0.10" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-1);outline:none"></div>' +
-        '<div><div style="font-size:11px;color:var(--accent);margin-bottom:6px">+ Bundle Add-on Cost</div><input type="number" id="sim-bundle" value="0.00" step="0.10" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-accent);background:var(--bg);color:var(--text-1);outline:none"></div>' +
+        '<div><div style="font-size:11px;color:var(--accent);margin-bottom:6px">+ Included Add-on Cost</div><input type="number" id="sim-bundle" value="0.00" step="0.10" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-accent);background:var(--bg);color:var(--text-1);outline:none"></div>' +
         '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Est FBA Fees (30%)</div><input type="number" id="sim-fba" value="' + (cPrice * 0.3).toFixed(2) + '" readonly style="width:100%;padding:10px;border-radius:8px;border:1px dashed var(--border);background:transparent;color:var(--text-3);outline:none"></div>' +
         '<div style="background:var(--bg);border-radius:8px;border:1px solid var(--green);padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:center"><div style="font-size:11px;color:var(--green);margin-bottom:2px">Net Margin</div><div id="sim-margin" style="font-size:20px;font-weight:900;color:var(--green)">--</div></div>' +
       '</div>' +
