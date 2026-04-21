@@ -115,8 +115,8 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
       <span class="nav-icon">🔍</span> Brand Intel
     </a>
     <div class="nav-divider"></div>
-    <a class="nav-item" data-view="community" onclick="switchView('community', this)">
-      <span class="nav-icon">👥</span> Community Data <span class="pro-badge">PRO</span>
+    <a class="nav-item" data-view="command" onclick="switchView('command', this)">
+      <span class="nav-icon">🛡️</span> Command Center <span class="pro-badge">PRO</span>
     </a>
     <a class="nav-item" data-view="alerts" onclick="switchView('alerts', this)">
       <span class="nav-icon">🔔</span> Smart Alerts <span class="pro-badge">PRO</span>
@@ -204,17 +204,23 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
       <div id="cockpit-content"></div>
     </div>
 
-    <!-- COMMUNITY DATA (Pro) -->
-    <div class="view" id="view-community">
-      <div class="pro-panel" id="community-gate">
-        <h3>Community Data — Pro Feature</h3>
-        <p>Unlock crowd-sourced price and BSR history pooled across all Keen users. See what the market is really doing, not just your own snapshots.</p>
+    <!-- COMMAND CENTER (Pro) -->
+    <div class="view" id="view-command">
+      <div class="pro-panel" id="command-gate">
+        <h3>Command Center — Pro Feature</h3>
+        <p>A defensive cockpit for your own brand. Scan your listings for critical vulnerabilities, track active siphon threats, and discover actionable review insights to protect your sales.</p>
         <button class="pro-panel-btn" onclick="switchView('account', document.querySelector('[data-view=account]'))">Upgrade to Pro</button>
       </div>
-      <div id="community-content" style="display:none">
+      <div id="command-content" style="display:none">
         <div class="section">
-          <div class="section-header"><div class="section-title">Top BSR Movers — Community Pool</div></div>
-          <div id="community-movers"><div class="loading">Loading community data…</div></div>
+          <div class="section-header"><div class="section-title">Defensive Brand Analysis</div></div>
+          <div style="display:flex;gap:10px;margin-bottom:20px">
+            <input id="command-search-input" type="text" placeholder="Enter your ASIN…" style="flex:1;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:#f1f5f9;font-size:14px;font-family:inherit;outline:none">
+            <button id="command-search-btn" onclick="searchCommandCenter()" style="padding:12px 20px;border-radius:10px;border:none;background:var(--green);color:#0a0e1a;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit">Scan Listing</button>
+          </div>
+          <div id="command-results">
+            <div class="empty"><p>Enter an ASIN above to run a defensive scan on your listing.</p></div>
+          </div>
         </div>
       </div>
     </div>
@@ -249,7 +255,7 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
         <div id="plan-card" style="background:var(--bg-card);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:24px">
           <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Plan</div>
           <div id="plan-label" style="font-size:15px;font-weight:700;color:var(--yellow);margin-bottom:12px">Free</div>
-          <div id="plan-desc" style="font-size:13px;color:var(--text-2);margin-bottom:16px">Pro includes: community data in reports, weekly digest, brand intelligence API, smart alerts, CSV export, 500 products.</div>
+          <div id="plan-desc" style="font-size:13px;color:var(--text-2);margin-bottom:16px">Pro includes: Defensive Command Center, weekly digest, brand intelligence API, smart alerts, CSV export, 500 products.</div>
           <button class="pro-panel-btn" style="font-size:13px;padding:10px 20px" id="upgrade-btn" onclick="startCheckout()">Upgrade to Pro — $29/mo</button>
         </div>
       </div>
@@ -277,15 +283,15 @@ function setUserPlan(isPro) {
   var upgradeBtn = document.getElementById('upgrade-btn');
   var planCard   = document.getElementById('plan-card');
   if (planLabel)  { planLabel.textContent = 'Pro'; planLabel.style.color = 'var(--accent)'; }
-  if (planDesc)   planDesc.textContent = 'You have full access to all Pro features including community data, AI reports, weekly digest, and smart alerts.';
+  if (planDesc)   planDesc.textContent = 'You have full access to all Pro features including the Command Center, AI reports, weekly digest, and smart alerts.';
   if (upgradeBtn) upgradeBtn.style.display = 'none';
   if (planCard)   planCard.style.borderColor = 'rgba(56,189,248,0.2)';
 
-  // Unlock Community Data view
-  var communityGate    = document.getElementById('community-gate');
-  var communityContent = document.getElementById('community-content');
-  if (communityGate)    communityGate.style.display    = 'none';
-  if (communityContent) communityContent.style.display = 'block';
+  // Unlock Command Center view
+  var commandGate    = document.getElementById('command-gate');
+  var commandContent = document.getElementById('command-content');
+  if (commandGate)    commandGate.style.display    = 'none';
+  if (commandContent) commandContent.style.display = 'block';
 
   // Unlock Smart Alerts view
   var alertsGate    = document.getElementById('alerts-gate');
@@ -337,7 +343,7 @@ var viewTitles = {
   products:  ['Your Products',    'Products you are tracking via the extension'],
   trending:  ['Trending',         'Top BSR movers across all tracked ASINs'],
   brand:     ['Brand Intelligence','Crowd-sourced brand analytics'],
-  community: ['Community Data',   'Pro — crowd-sourced market history'],
+  command:   ['Command Center',   'Pro — defensive brand intelligence'],
   alerts:    ['Smart Alerts',     'Pro — threshold-based email notifications'],
   account:   ['Account',          'Plan and settings']
 };
@@ -352,7 +358,7 @@ function switchView(name, el) {
   document.getElementById('topbar-title').textContent = meta[0];
   document.getElementById('topbar-sub').textContent = meta[1];
   if (name === 'trending')  loadTrending();
-  if (name === 'community') loadCommunity();
+
   if (name === 'products' && window.keenUserId) loadProducts(window.keenUserId);
 }
 
@@ -469,19 +475,70 @@ function cockpitJump(asin) {
   searchBrand().then(function() { openCockpit(asin); }).catch(function(){});
 }
 
-function loadCommunity() {
-  var el = document.getElementById('community-movers');
-  if (!el || el.dataset.loaded) return;
-  el.dataset.loaded = '1';
-  el.innerHTML = '<div class="loading">Loading…</div>';
-  fetch('/api/trending?windowDays=14&limit=50')
-    .then(function(r) { return r.ok ? r.json() : null; })
+function searchCommandCenter() {
+  var asin = document.getElementById('command-search-input').value.trim();
+  if (!asin) return;
+  
+  var el = document.getElementById('command-results');
+  el.innerHTML = '<div class="loading">Scanning listing ' + esc(asin) + '…</div>';
+  
+  fetch('/api/defensive-intel?asin=' + encodeURIComponent(asin))
+    .then(function(r) { return r.json(); })
     .then(function(data) {
-      if (!data) { el.innerHTML = '<div class="empty"><p>No community data yet.</p></div>'; return; }
-      var all = (data.trending || []).concat(data.declining || []);
-      el.innerHTML = renderMoversTable(all, 50);
+      if (data.error) {
+        el.innerHTML = '<div class="empty"><p>' + esc(data.error) + '</p></div>';
+        return;
+      }
+      
+      var sColor = data.color === 'green' ? 'var(--green)' : data.color === 'yellow' ? 'var(--yellow)' : 'var(--red)';
+      var sBg = data.color === 'green' ? 'rgba(74,222,128,0.1)' : data.color === 'yellow' ? 'rgba(251,191,36,0.1)' : 'rgba(248,113,113,0.1)';
+      
+      var threatsHtml = '';
+      if (data.threats && data.threats.length > 0) {
+        threatsHtml = data.threats.map(function(t) {
+          var tColor = t.type === 'critical' ? 'var(--red)' : 'var(--yellow)';
+          var tBg = t.type === 'critical' ? 'rgba(248,113,113,0.15)' : 'rgba(251,191,36,0.15)';
+          return '<div style="background:' + tBg + ';border:1px solid ' + tColor + ';border-radius:10px;padding:16px;margin-bottom:12px;">' +
+                 '<div style="font-size:13px;font-weight:800;color:' + tColor + ';margin-bottom:4px">' + esc(t.title) + '</div>' +
+                 '<div style="font-size:13px;color:var(--text-1)">' + esc(t.message) + '</div></div>';
+        }).join('');
+      } else {
+        threatsHtml = '<div style="background:rgba(74,222,128,0.1);border:1px solid var(--green);border-radius:10px;padding:16px;color:var(--green);font-size:13px;font-weight:700">No active threats detected.</div>';
+      }
+
+      var auditHtml = data.audit.map(function(a) {
+        var aColor = a.status === 'Pass' ? 'var(--green)' : a.status === 'Warning' ? 'var(--yellow)' : 'var(--red)';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">' +
+               '<div><div style="font-size:14px;font-weight:700;color:var(--text-1)">' + esc(a.check) + '</div><div style="font-size:12px;color:var(--text-3);margin-top:2px">' + esc(a.detail) + '</div></div>' +
+               '<div class="pill" style="border-color:' + aColor + ';color:' + aColor + ';background:rgba(255,255,255,0.03)">' + esc(a.status) + '</div>' +
+               '</div>';
+      }).join('');
+
+      el.innerHTML = 
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">' +
+          // Shield Score
+          '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;display:flex;align-items:center;justify-content:space-between">' +
+            '<div><div style="font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Listing Shield Score</div>' +
+            '<div style="font-size:14px;color:var(--text-2);max-width:200px">Measures defensive posture against hijackers and siphons.</div></div>' +
+            '<div style="width:100px;height:100px;border-radius:50%;background:' + sBg + ';border:4px solid ' + sColor + ';display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:900;color:' + sColor + '">' + data.shieldScore + '</div>' +
+          '</div>' +
+          // Review Intel
+          '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:32px;">' +
+            '<div style="font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px">Review Intelligence</div>' +
+            '<div style="font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:8px">' + esc(data.reviewIntel.summary) + '</div>' +
+            '<div style="background:var(--bg);padding:12px;border-radius:8px;font-size:13px;color:var(--text-2);font-style:italic;margin-bottom:12px">"' + esc(data.reviewIntel.insight) + '"</div>' +
+            '<div style="font-size:12px;color:var(--text-3)"><span style="color:var(--accent);font-weight:700">Recommended Action:</span> ' + esc(data.reviewIntel.action) + '</div>' +
+          '</div>' +
+        '</div>' +
+        // Bottom Row
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">' +
+          // Threats
+          '<div><div class="section-title" style="margin-bottom:16px">Active Threat Intel</div>' + threatsHtml + '</div>' +
+          // Audit
+          '<div><div class="section-title" style="margin-bottom:16px">Listing Audit</div><div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0 20px">' + auditHtml + '</div></div>' +
+        '</div>';
     })
-    .catch(function() { el.innerHTML = '<div class="empty"><p>Could not load data.</p></div>'; });
+    .catch(function() { el.innerHTML = '<div class="empty"><p>Error scanning listing.</p></div>'; });
 }
 
 function searchBrand() {
@@ -642,6 +699,20 @@ function openCockpit(asin) {
 
   attachSimEvents();
   simBundling();
+
+  // Fetch real Alibaba Sourcing Estimate
+  var costInput = document.getElementById('sim-cost');
+  costInput.style.opacity = '0.5';
+  fetch('/api/alibaba-bridge?asin=' + encodeURIComponent(asin) + '&category=' + encodeURIComponent(product.category || '') + '&currentPrice=' + cPrice)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.sourcing && data.sourcing.estimatedCogs) {
+        costInput.value = data.sourcing.estimatedCogs.toFixed(2);
+        costInput.style.opacity = '1';
+        simBundling();
+      }
+    })
+    .catch(function() { costInput.style.opacity = '1'; });
 }
 
 function attachSimEvents() {

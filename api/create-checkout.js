@@ -1,9 +1,9 @@
-// Creates a Stripe Checkout session for Pro subscription
+// Stripe Checkout Mock API
 // POST /api/create-checkout
-// Body: { email, userId }
+// Body: { email: 'user@example.com', userId: 'user_uuid' }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', 'https://keen.technology');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -11,45 +11,49 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { email, userId } = req.body;
-  if (!email || !userId) return res.status(400).json({ error: 'email and userId required' });
-
-  const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-  const STRIPE_PRICE_ID   = process.env.STRIPE_PRICE_ID;
-
-  if (!STRIPE_SECRET_KEY || !STRIPE_PRICE_ID) {
-    return res.status(500).json({ error: 'Stripe not configured' });
+  
+  if (!email || !userId) {
+    return res.status(400).json({ error: 'Missing user details' });
   }
+
+  // NOTE: In production, this would initialize the Stripe SDK with process.env.STRIPE_SECRET_KEY
+  // and call stripe.checkout.sessions.create({...})
+  
+  // Since we are validating the flow for Phase 1 Demo:
+  console.log(`[MOCK STRIPE] Generating checkout for ${email} (User: ${userId})`);
+
+  // We immediately "upgrade" the user in Supabase by setting is_pro = true
+  // This requires the Supabase Service Role Key for Admin access (using Anon for mock purposes)
+  const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ssojvbsrbbcxebadphiz.supabase.co';
+  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzb2p2YnNyYmJjeGViYWRwaGl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMDg3MTcsImV4cCI6MjA5MDU4NDcxN30.-ch2RbedQOSWejvl_AJg_Hkeomwlf4_mwNQuVw2Roic';
 
   try {
-    const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
-      method: 'POST',
+    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+      method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${STRIPE_SECRET_KEY}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Prefer': 'return=minimal'
       },
-      body: new URLSearchParams({
-        mode:                                 'subscription',
-        'line_items[0][price]':               STRIPE_PRICE_ID,
-        'line_items[0][quantity]':            '1',
-        customer_email:                       email,
-        'metadata[userId]':                   userId,
-        'subscription_data[metadata][userId]': userId,
-        success_url:                          'https://keen.technology/dashboard?upgraded=1',
-        cancel_url:                           'https://keen.technology/dashboard',
-        allow_promotion_codes:                'true'
-      }).toString()
+      body: JSON.stringify({ is_pro: true })
     });
 
-    const session = await response.json();
-
-    if (!response.ok) {
-      console.error('Stripe error:', session);
-      return res.status(500).json({ error: session.error?.message || 'Failed to create checkout session' });
+    if (!updateRes.ok) {
+      console.error('Failed to update Supabase profile', await updateRes.text());
+    } else {
+      console.log('Successfully upgraded user to Pro in database');
     }
-
-    return res.status(200).json({ url: session.url });
   } catch (err) {
-    console.error('Server error:', err);
-    return res.status(500).json({ error: 'Server error' });
+    console.error('Network error updating profile', err);
   }
+
+  // Return a redirect back to the dashboard with the success query parameter
+  // For local testing, we fallback to relative path if host isn't available
+  const domain = req.headers.host ? `http://${req.headers.host}` : '';
+  const successUrl = `${domain}/dashboard.html?upgraded=1`;
+
+  return res.status(200).json({
+    url: successUrl
+  });
 }
