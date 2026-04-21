@@ -311,7 +311,18 @@ client.auth.getSession().then(async function(r) {
     if (profRes.data && profRes.data.is_pro) setUserPlan(true);
   } catch(e) {}
 
-  loadDashboard();
+  // Intercept ?asin= parameter from Chrome Extension
+  var urlParams = new URLSearchParams(window.location.search);
+  var hookedAsin = urlParams.get('asin');
+  if (hookedAsin) {
+    switchView('brand', document.querySelector('[data-view=brand]'));
+    document.getElementById('brand-search-input').value = hookedAsin;
+    searchBrand().then(function() { openCockpit(hookedAsin); }).catch(function(){});
+    // Still load background stats
+    loadDashboard();
+  } else {
+    loadDashboard();
+  }
 });
 
 document.getElementById('logout-btn').addEventListener('click', async function() {
@@ -465,10 +476,10 @@ function loadCommunity() {
 
 function searchBrand() {
   var brand = document.getElementById('brand-search-input').value.trim();
-  if (!brand) return;
+  if (!brand) return Promise.reject('No brand provided');
   var el = document.getElementById('brand-content');
   el.innerHTML = '<div class="loading">Fetching data for "' + esc(brand) + '"…</div>';
-  fetch('/api/brand?brand=' + encodeURIComponent(brand))
+  return fetch('/api/brand?brand=' + encodeURIComponent(brand))
     .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
     .then(function(res) {
       if (!res.ok) { el.innerHTML = '<div class="empty"><p>No data found for "' + esc(brand) + '".</p></div>'; return; }
