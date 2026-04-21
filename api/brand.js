@@ -138,6 +138,13 @@ export default async function handler(req, res) {
       let color = 'red'; // 0-59
       if (score >= 80) color = 'green';
       else if (score >= 60) color = 'yellow';
+
+      const siphonAngle = score >= 80 
+        ? "High vulnerability detected. Competitor relies entirely on legacy rank without modern listing fundamentals." 
+        : "Listing is entrenched. Proceed only if your Alibaba sourcing wedge allows for 30%+ margin suppression.";
+      const mustFix = score >= 80 
+        ? "Overhaul gallery images and introduce A+ content."
+        : "Match existing A+ content depth and offer 20% price wedge.";
       
       // Procedural Mock Data for Product Cockpit 
       // 1. Listing Fundamentals Grade
