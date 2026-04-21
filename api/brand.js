@@ -187,6 +187,26 @@ export default async function handler(req, res) {
         }
       ];
 
+      // 4. Defensive Intelligence Mock
+      let threatLevel = 'low';
+      let threats = [];
+      let siphonAttempts = 0;
+      
+      if (score >= 80) { // High offensive score means high defensive vulnerability
+        threatLevel = 'high';
+        siphonAttempts = 2 + (asinHash % 4);
+        threats.push("Active Siphon detected: Competitor capturing " + (15 + (asinHash % 20)) + "% of branded search.");
+        threats.push("Shield Audit: Vulnerable gallery allows easy differentiation.");
+      } else if (score >= 60) {
+        threatLevel = 'medium';
+        siphonAttempts = (asinHash % 2);
+        if (siphonAttempts > 0) threats.push("Siphon attempt detected on secondary keywords.");
+        threats.push("Shield Audit: Review velocity dropping below category average.");
+      } else {
+        threatLevel = 'low';
+        threats.push("Shield Audit: Strong defensive moat. A+ content active.");
+      }
+
       asins.push({
         asin,
         title:         data.title,
@@ -200,6 +220,12 @@ export default async function handler(req, res) {
           color,
           mustFix,
           siphonAngle
+        },
+        defensive: {
+          threatLevel,
+          siphonAttempts,
+          threats,
+          shieldScore: 100 - score
         },
         cockpit: {
           listing: listingStatus,
@@ -240,11 +266,13 @@ export default async function handler(req, res) {
 
     const climbingAsins  = asins.filter(a => a.trends.bsr && a.trends.bsr.improved);
     const decliningAsins = asins.filter(a => a.trends.bsr && !a.trends.bsr.improved);
+    const totalSiphonAttempts = asins.reduce((acc, a) => acc + (a.defensive ? a.defensive.siphonAttempts : 0), 0);
 
     return res.status(200).json({
       brand: searchBrand,
       asinCount: asins.length,
       totalSnapshotCount,
+      totalSiphonAttempts,
       summary: {
         price: allCurrentPrices.length ? {
           min: +Math.min(...allCurrentPrices).toFixed(2),

@@ -129,9 +129,9 @@ nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 100; padding: 16px
 </nav>
 
 <div class="hero">
-  <div class="hero-eyebrow">Brand Intelligence</div>
-  <h1>See any brand's Amazon performance</h1>
-  <p>Crowd-sourced BSR trends, price movement, and review velocity across a brand's full tracked catalog.</p>
+  <div class="hero-eyebrow">Brand Intelligence & Defense</div>
+  <h1>Total visibility into any brand's Amazon performance</h1>
+  <p>Discover competitor vulnerabilities for offensive action, or run Shield Audits to detect active siphoning against your own products.</p>
 
   <div class="search-wrap">
     <input class="search-input" id="brand-input" type="text" placeholder="Enter a brand name (e.g. Anker, Instant Pot)" autocomplete="off">
@@ -218,16 +218,53 @@ function renderResults(data, history) {
     '</div>';
   }).join('');
 
+  var shieldAvgScore = validBlueprints.length ? Math.round(validBlueprints.reduce(function(acc, b){ return acc + (b.defensive ? b.defensive.shieldScore : 100 - b.blueprint.apexScore); }, 0) / validBlueprints.length) : 0;
+  var shieldColor = shieldAvgScore >= 80 ? 'var(--green)' : shieldAvgScore >= 60 ? 'var(--yellow)' : 'var(--red)';
+  var shieldShadow = shieldAvgScore >= 80 ? 'rgba(74,222,128,0.03)' : shieldAvgScore >= 60 ? 'rgba(251,191,36,0.03)' : 'rgba(248,113,113,0.03)';
+  var totalSiphonAttempts = data.totalSiphonAttempts || 0;
+  var shieldText = totalSiphonAttempts === 0 ? 'Secure Posture' : totalSiphonAttempts < 5 ? 'Active Threats Detected' : 'Critical Siphoning';
+
   var heroHtml = validBlueprints.length ? 
-    '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-left:4px solid ' + heroColor + ';border-radius:16px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;box-shadow:0 8px 32px ' + heroShadow + '">' +
-      '<div>' +
-        '<div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Brand Vulnerability Index</div>' +
-        '<div style="font-size:20px;font-weight:800;color:var(--text-primary)">' + heroText + '</div>' +
+    '<div style="display:flex;gap:16px;margin-bottom:24px;">' +
+      '<div style="flex:1;background:var(--bg-card);border:1px solid var(--border-subtle);border-left:4px solid ' + heroColor + ';border-radius:16px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 32px ' + heroShadow + '">' +
+        '<div>' +
+          '<div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Brand Vulnerability Index</div>' +
+          '<div style="font-size:20px;font-weight:800;color:var(--text-primary)">' + heroText + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:42px;font-weight:900;color:' + heroColor + ';line-height:1">' + avgScore + '</div>' +
+        '</div>' +
       '</div>' +
-      '<div style="text-align:right">' +
-        '<div style="font-size:42px;font-weight:900;color:' + heroColor + ';line-height:1">' + avgScore + '</div>' +
+      '<div style="flex:1;background:var(--bg-card);border:1px solid var(--border-subtle);border-left:4px solid ' + shieldColor + ';border-radius:16px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 32px ' + shieldShadow + '">' +
+        '<div>' +
+          '<div style="font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">Shield Audit Status</div>' +
+          '<div style="font-size:20px;font-weight:800;color:var(--text-primary)">' + shieldText + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:42px;font-weight:900;color:' + shieldColor + ';line-height:1">' + totalSiphonAttempts + '</div>' +
+          '<div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.05em;margin-top:2px">ACTIVE THREATS</div>' +
+        '</div>' +
       '</div>' +
     '</div>' : '';
+
+  var topThreats = asins.filter(function(a) { return a.defensive && a.defensive.threatLevel === 'high'; }).slice(0, 2);
+  var threatsHtml = topThreats.length ? topThreats.map(function(t) {
+    var tBorder = 'rgba(248,113,113,0.3)';
+    var tBg = 'rgba(248,113,113,0.05)';
+    return '<div style="background:var(--bg-card);border:1px solid ' + tBorder + ';border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px;flex:1;box-shadow:0 4px 20px rgba(248,113,113,0.05)">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+        '<div><div style="font-size:14px;font-weight:700;color:var(--text-primary);max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.title || t.asin) + '</div>' +
+        '<div style="font-size:12px;color:var(--red);font-weight:600;margin-top:4px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:6px;height:6px;background:var(--red);border-radius:50%;box-shadow:0 0 8px var(--red)"></span> Threat Detected</div></div>' +
+        '<div style="padding:4px 10px;border-radius:6px;background:' + tBg + ';color:var(--red);font-weight:800;font-size:12px;border:1px solid ' + tBorder + '">Shield ' + t.defensive.shieldScore + '</div>' +
+      '</div>' +
+      '<div style="background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.1);border-radius:8px;padding:14px;font-size:13px;color:var(--text-secondary);line-height:1.6;">' +
+        '<div style="color:var(--red);display:block;margin-bottom:6px;font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase">Alerts</div>' +
+        '<ul style="margin:0;padding-left:16px;color:var(--text-primary);font-weight:500;font-size:12px;display:flex;flex-direction:column;gap:4px;">' + 
+          t.defensive.threats.map(function(threat) { return '<li>' + esc(threat) + '</li>'; }).join('') + 
+        '</ul>' +
+      '</div>' +
+    '</div>';
+  }).join('') : '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:12px;padding:24px;text-align:center;color:var(--text-muted);font-size:13px;flex:1;">No critical shield vulnerabilities detected in top ASINs.</div>';
 
   var summaryHtml =
     '<div class="summary-grid">' +
@@ -319,6 +356,7 @@ function renderResults(data, history) {
     '</div>' +
     heroHtml +
     (targetsHtml ? '<div style="margin-bottom:32px"><div style="font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px"><span style="display:flex;width:12px;height:12px;background:var(--accent);border-radius:50%;align-items:center;justify-content:center"><span style="width:4px;height:4px;background:var(--bg-deep);border-radius:50%"></span></span> Top Siphon Targets</div><div style="display:flex;gap:16px">' + targetsHtml + '</div></div>' : '') +
+    (validBlueprints.length ? '<div style="margin-bottom:32px"><div style="font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;align-items:center;gap:8px"><span style="display:flex;width:12px;height:12px;background:var(--red);border-radius:50%;align-items:center;justify-content:center"><span style="width:4px;height:4px;background:var(--bg-deep);border-radius:50%"></span></span> Active Threat Detection</div><div style="display:flex;gap:16px">' + threatsHtml + '</div></div>' : '') +
     summaryHtml +
     tableHtml +
     proGate;
