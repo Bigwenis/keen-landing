@@ -335,6 +335,9 @@ client.auth.getSession().then(async function(r) {
     searchBrand().then(function() { openCockpit(hookedAsin); }).catch(function(){});
     // Still load background stats
     loadDashboard();
+  } else if (urlParams.get('amazon_linked') === '1' || urlParams.get('upgraded') === '1' || urlParams.get('error')) {
+    switchView('account', document.querySelector('[data-view=account]'));
+    loadDashboard();
   } else {
     loadDashboard();
   }
