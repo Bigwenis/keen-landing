@@ -22,21 +22,67 @@ export default async function handler(req, res) {
 
   const color = shieldScore >= 80 ? 'green' : shieldScore >= 60 ? 'yellow' : 'red';
 
-  // Threats
+  // Threats Generation
   const threats = [];
-  if (shieldScore < 70) {
-    threats.push({
+  const threatTypes = [];
+
+  // Threat 1: Buy Box Hijacker (Critical)
+  if (asinHash % 5 === 0) {
+    threatTypes.push({
       type: 'critical',
-      title: 'Active Siphon Detected',
-      message: `Competitor B0${(asinHash * 7).toString(16).toUpperCase().substring(0, 8)} is capturing ~${12 + (asinHash % 15)}% of your branded search volume.`
+      title: 'Buy Box Hijacker Detected',
+      message: `Unauthorized seller 'Direct Fulfillment LLC' detected offering FBM at 15% below your price. Immediate risk of losing the Buy Box. File a trademark violation via Brand Registry.`
     });
   }
-  if (asinHash % 2 === 0) {
-    threats.push({
-      type: 'warning',
-      title: 'Price Undercutting',
-      message: `3 competitors in your sub-category dropped prices by >10% in the last 72 hours.`
+
+  // Threat 2: Review Sabotage (Critical)
+  if (asinHash % 7 === 0) {
+    threatTypes.push({
+      type: 'critical',
+      title: 'Potential Review Sabotage',
+      message: `Anomalous velocity detected: 4 one-star reviews posted in the last 48 hours mentioning "fake". High probability of a coordinated black-hat attack. Open a high-priority Seller Support ticket.`
     });
+  }
+
+  // Threat 3: Keyword Siphoning (Warning)
+  if (shieldScore < 85 && asinHash % 2 === 0) {
+    threatTypes.push({
+      type: 'warning',
+      title: 'Active Keyword Siphoning',
+      message: `Competitor B0${(asinHash * 7).toString(16).toUpperCase().substring(0, 8)} launched an aggressive Sponsored Video ad targeting your brand name, siphoning ~${8 + (asinHash % 5)}% of top-of-funnel traffic.`
+    });
+  }
+
+  // Threat 4: Category Margin Compression (Warning)
+  if (asinHash % 3 === 0) {
+    threatTypes.push({
+      type: 'warning',
+      title: 'Margin Compression Risk',
+      message: `The top 10 competitors in your subcategory dropped their average price by 18% over the last 14 days. Consider a temporary 5% coupon to defend your BSR.`
+    });
+  }
+
+  // Threat 6: Apex Siphon Vulnerability (Warning)
+  if (shieldScore < 70) {
+    threatTypes.push({
+      type: 'warning',
+      title: 'Apex Differentiation Vulnerability',
+      message: `Your Defensive Shield Score dropped. Three competitors recently added a complementary accessory to their bundles. Source a complementary item to defend your differentiation angle.`
+    });
+  }
+
+  // Ensure at least one threat is shown if score is below 80, but limit to max 2-3 to avoid overwhelming
+  if (threatTypes.length === 0 && shieldScore < 80) {
+    threatTypes.push({
+      type: 'warning',
+      title: 'Active Keyword Siphoning',
+      message: `Competitor B0${(asinHash * 7).toString(16).toUpperCase().substring(0, 8)} launched an aggressive Sponsored Video ad targeting your brand name, siphoning ~${8 + (asinHash % 5)}% of top-of-funnel traffic.`
+    });
+  }
+
+  // Pick up to 2 threats
+  for (let i = 0; i < Math.min(2, threatTypes.length); i++) {
+    threats.push(threatTypes[i]);
   }
 
   // Review Intelligence
