@@ -808,7 +808,7 @@ function setAmazonConnected(isConnected) {
 
 function linkAmazonAccount() {
   if (!currentUser) return;
-  window.location.href = '/api/amazon-auth?userId=' + currentUser.id;
+  window.location.href = '/amazon-login?userId=' + currentUser.id;
 }
 
 document.getElementById('brand-search-input').addEventListener('keypress', function(e) {

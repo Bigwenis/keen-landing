@@ -7,7 +7,8 @@
     { "source": "/login",     "destination": "/login.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/reset-password",  "destination": "/reset-password.html" },
-    { "source": "/update-password", "destination": "/update-password.html" }
+    { "source": "/update-password", "destination": "/update-password.html" },
+    { "source": "/amazon-login",    "destination": "/amazon-login.html" }
   ],
   "headers": [
     {
