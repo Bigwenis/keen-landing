@@ -258,6 +258,12 @@ body { font-family: var(--sans); background: var(--bg); color: var(--text-1); mi
           <div id="plan-desc" style="font-size:13px;color:var(--text-2);margin-bottom:16px">Pro includes: Defensive Command Center, weekly digest, brand intelligence API, smart alerts, CSV export, 500 products.</div>
           <button class="pro-panel-btn" style="font-size:13px;padding:10px 20px" id="upgrade-btn" onclick="startCheckout()">Upgrade to Pro — $29/mo</button>
         </div>
+        <div id="amazon-link-card" style="background:var(--bg-card);border:1px solid rgba(56,189,248,0.2);border-radius:14px;padding:24px;margin-top:20px">
+          <div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Amazon Integration</div>
+          <div id="amazon-link-status" style="font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:12px">Not Connected</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:16px">Connect your Amazon Seller account to pull exact SP-API Fulfillment and Referral fees into your Interactive Cockpit, guaranteeing mathematically perfect True Margins.</div>
+          <button class="pro-panel-btn" style="font-size:13px;padding:10px 20px;background:#ff9900;color:#000" id="amazon-link-btn" onclick="linkAmazonAccount()">Login with Amazon</button>
+        </div>
       </div>
     </div>
 
@@ -314,10 +320,11 @@ client.auth.getSession().then(async function(r) {
   document.getElementById('account-email').textContent = user.email;
   document.getElementById('topbar-sub').textContent = 'Welcome back, ' + user.email.split('@')[0];
 
-  // Check Pro status
+  // Check Pro & Amazon status
   try {
-    var profRes = await client.from('profiles').select('is_pro').eq('id', user.id).single();
+    var profRes = await client.from('profiles').select('is_pro, amazon_connected').eq('id', user.id).single();
     if (profRes.data && profRes.data.is_pro) setUserPlan(true);
+    if (profRes.data && profRes.data.amazon_connected) setAmazonConnected(true);
   } catch(e) {}
 
   var urlParams = new URLSearchParams(window.location.search);
@@ -691,7 +698,7 @@ function openCockpit(asin) {
         '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Target Price</div><input type="number" id="sim-price" value="' + cPrice + '" step="0.50" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-1);outline:none;font-weight:700"></div>' +
         '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Base Unit Cost</div><input type="number" id="sim-cost" value="' + (cPrice * 0.2).toFixed(2) + '" step="0.10" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-1);outline:none"></div>' +
         '<div><div style="font-size:11px;color:var(--accent);margin-bottom:6px">+ Included Add-on Cost</div><input type="number" id="sim-bundle" value="0.00" step="0.10" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-accent);background:var(--bg);color:var(--text-1);outline:none"></div>' +
-        '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px">Est FBA Fees (30%)</div><input type="number" id="sim-fba" value="' + (cPrice * 0.3).toFixed(2) + '" readonly style="width:100%;padding:10px;border-radius:8px;border:1px dashed var(--border);background:transparent;color:var(--text-3);outline:none"></div>' +
+        '<div><div style="font-size:11px;color:var(--text-3);margin-bottom:6px" id="sim-fba-label">Est FBA Fees (30%)</div><input type="number" id="sim-fba" value="' + (cPrice * 0.3).toFixed(2) + '" readonly style="width:100%;padding:10px;border-radius:8px;border:1px dashed var(--border);background:transparent;color:var(--text-3);outline:none;font-weight:700"></div>' +
         '<div style="background:var(--bg);border-radius:8px;border:1px solid var(--green);padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:center"><div style="font-size:11px;color:var(--green);margin-bottom:2px">Net Margin</div><div id="sim-margin" style="font-size:20px;font-weight:900;color:var(--green)">--</div></div>' +
       '</div>' +
       '<div style="font-size:13px;color:var(--text-2);text-align:center">💡 <b>Concept:</b> Add a cheap bundled accessory to visually differentiate from the competitor, ensuring they cannot effectively PPC bid against your superior perceived value.</div>' +
@@ -721,19 +728,84 @@ function attachSimEvents() {
   document.getElementById('sim-bundle').addEventListener('input', simBundling);
 }
 
+var simFetchTimer;
 function simBundling() {
   var p = parseFloat(document.getElementById('sim-price').value) || 0;
   var c = parseFloat(document.getElementById('sim-cost').value) || 0;
   var b = parseFloat(document.getElementById('sim-bundle').value) || 0;
-  var fba = p * 0.30;
-  document.getElementById('sim-fba').value = fba.toFixed(2);
+
+  var asin = document.getElementById('brand-search-input').value.trim();
+
+  if (window.amazonConnected && asin && p > 0) {
+    clearTimeout(simFetchTimer);
+    simFetchTimer = setTimeout(function() {
+      document.getElementById('sim-fba-label').textContent = 'Fetching SP-API...';
+      document.getElementById('sim-fba-label').style.color = 'var(--yellow)';
+      fetch('/api/amazon-fees?asin=' + encodeURIComponent(asin) + '&price=' + p)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.spApiData) {
+            var exactFees = data.spApiData.totalFees;
+            document.getElementById('sim-fba').value = exactFees.toFixed(2);
+            document.getElementById('sim-fba').style.color = 'var(--green)';
+            document.getElementById('sim-fba').style.borderColor = 'var(--green)';
+            document.getElementById('sim-fba-label').textContent = 'SP-API Exact Fees';
+            document.getElementById('sim-fba-label').style.color = 'var(--green)';
+            updateMarginUI(p, c, b, exactFees);
+          }
+        })
+        .catch(function() {
+           // fallback to 30% if API fails
+           var estFba = p * 0.30;
+           document.getElementById('sim-fba-label').textContent = 'Est FBA Fees (30%)';
+           document.getElementById('sim-fba-label').style.color = 'var(--text-3)';
+           document.getElementById('sim-fba').value = estFba.toFixed(2);
+           updateMarginUI(p, c, b, estFba);
+        });
+    }, 500);
+  } else {
+    var fba = p * 0.30;
+    var fbaLabel = document.getElementById('sim-fba-label');
+    if (fbaLabel) {
+      fbaLabel.textContent = 'Est FBA Fees (30%)';
+      fbaLabel.style.color = 'var(--text-3)';
+    }
+    var fbaInput = document.getElementById('sim-fba');
+    if (fbaInput) {
+      fbaInput.value = fba.toFixed(2);
+      fbaInput.style.color = 'var(--text-3)';
+      fbaInput.style.borderColor = 'var(--border)';
+    }
+    updateMarginUI(p, c, b, fba);
+  }
+}
+
+function updateMarginUI(p, c, b, fba) {
   var net = p - c - b - fba;
   var margin = p > 0 ? ((net / p) * 100) : 0;
   var mEl = document.getElementById('sim-margin');
+  if (!mEl) return;
   mEl.textContent = margin.toFixed(1) + '%';
   if (margin >= 30) { mEl.style.color = 'var(--green)'; mEl.parentElement.style.borderColor = 'var(--green)'; }
   else if (margin >= 15) { mEl.style.color = 'var(--yellow)'; mEl.parentElement.style.borderColor = 'var(--yellow)'; }
   else { mEl.style.color = 'var(--red)'; mEl.parentElement.style.borderColor = 'var(--red)'; }
+}
+
+window.amazonConnected = false;
+function setAmazonConnected(isConnected) {
+  if (!isConnected) return;
+  window.amazonConnected = true;
+  var statusEl = document.getElementById('amazon-link-status');
+  var btnEl = document.getElementById('amazon-link-btn');
+  var cardEl = document.getElementById('amazon-link-card');
+  if (statusEl) { statusEl.textContent = 'Connected (SP-API Active)'; statusEl.style.color = 'var(--green)'; }
+  if (btnEl) btnEl.style.display = 'none';
+  if (cardEl) cardEl.style.borderColor = 'var(--green)';
+}
+
+function linkAmazonAccount() {
+  if (!currentUser) return;
+  window.location.href = '/api/amazon-auth?userId=' + currentUser.id;
 }
 
 document.getElementById('brand-search-input').addEventListener('keypress', function(e) {
@@ -769,11 +841,19 @@ async function startCheckout() {
   }
 }
 
-// Show success banner if returning from Stripe
 if (new URLSearchParams(window.location.search).get('upgraded') === '1') {
   var banner = document.createElement('div');
   banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#4ade80;color:#0a0e1a;text-align:center;padding:12px;font-size:14px;font-weight:800;z-index:9999';
   banner.textContent = '🎉 Welcome to Pro! Your account has been upgraded.';
+  document.body.appendChild(banner);
+  setTimeout(function() { banner.remove(); }, 6000);
+  window.history.replaceState({}, '', '/dashboard');
+}
+
+if (new URLSearchParams(window.location.search).get('amazon_linked') === '1') {
+  var banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#4ade80;color:#0a0e1a;text-align:center;padding:12px;font-size:14px;font-weight:800;z-index:9999';
+  banner.textContent = '✅ Amazon Seller Account linked successfully! SP-API exact fees are now enabled.';
   document.body.appendChild(banner);
   setTimeout(function() { banner.remove(); }, 6000);
   window.history.replaceState({}, '', '/dashboard');
